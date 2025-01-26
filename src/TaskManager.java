@@ -9,22 +9,6 @@ public class TaskManager {
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
 
-    // ↓ For tests below ↓
-
-    public HashMap<Integer, Task> getTasks() {
-        return tasks;
-    }
-
-    public HashMap<Integer, Epic> getEpics() {
-        return epics;
-    }
-
-    public HashMap<Integer, Subtask> getSubtasks() {
-        return subtasks;
-    }
-
-    // ↑ For tests above ↑
-
     public TaskManager() {
         lastTaskId = 0;
         tasks = new HashMap<>();
