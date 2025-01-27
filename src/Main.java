@@ -19,7 +19,7 @@ class Tester {
 
     final TaskManager manager = new TaskManager();
 
-    void runTests() {
+    public void runTests() {
         System.out.println("\nCreate first tasks");
         final Task task = new Task("Task summary", "Task description");
         manager.addTask(task);
@@ -64,10 +64,10 @@ class Tester {
         showLists();
     }
 
-    void showLists() {
-        ArrayList<Task> tasks = manager.getTasks();
-        ArrayList<Epic> epics = manager.getEpics();
-        ArrayList<Subtask> subtasks = manager.getSubtasks();
+    private void showLists() {
+        final ArrayList<Task> tasks = manager.getTasks();
+        final ArrayList<Epic> epics = manager.getEpics();
+        final ArrayList<Subtask> subtasks = manager.getSubtasks();
 
         System.out.println("\n_______lists_______");
         System.out.println("tasks: " + tasks);
