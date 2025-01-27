@@ -1,19 +1,17 @@
 package tracker.model;
 
-import tracker.controllers.TaskManager;
-
 import java.util.Objects;
 
 public class Task {
     private String summary;
     private String description;
-    private final int taskId;
+    private int taskId;
     private TaskStatus status;
 
     public Task(String summary, String description) {
         this.summary = summary;
         this.description = description;
-        this.taskId = TaskManager.getNextTaskId();
+        this.taskId = -1;
         this.status = TaskStatus.NEW;
     }
 
@@ -37,6 +35,10 @@ public class Task {
         return taskId;
     }
 
+    public void setTaskId(int taskId) {
+        this.taskId = taskId;
+    }
+
     public TaskStatus getStatus() {
         return status;
     }
@@ -48,7 +50,7 @@ public class Task {
     @Override
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
-        Task task = (Task) object;
+        final Task task = (Task) object;
         return taskId == task.taskId;
     }
 
