@@ -44,7 +44,7 @@ class TaskTest {
     @Test
     void shouldReturnInitialTaskIdForNewTask() {
         assertEquals(-1, task.getTaskId(),
-                "`getTaskId()` should return initial task id -1 for new task");
+                "`getTaskId()` should return initial task id -1 for a new task");
     }
 
     @Test
@@ -56,7 +56,7 @@ class TaskTest {
 
     @Test
     void shouldReturnInitialStatusForNewTask() {
-        assertEquals(TaskStatus.NEW, task.getStatus(), "`getStatus()` should return NEW status for new task");
+        assertEquals(TaskStatus.NEW, task.getStatus(), "`getStatus()` should return the NEW status for a new task");
     }
 
     @Test
