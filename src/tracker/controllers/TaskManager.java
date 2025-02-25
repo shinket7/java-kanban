@@ -133,7 +133,6 @@ public class TaskManager {
             epic.setStatus(computedEpicStatus);
             epics.put(epicId, epic);
         }
-
     }
 
     public void deleteTaskById(int id) {

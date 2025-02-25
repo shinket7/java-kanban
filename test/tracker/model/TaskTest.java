@@ -85,7 +85,7 @@ class TaskTest {
 
     @Test
     void shouldReturnCorrectString() {
-        String expectedString = "Task{summary='" + summary + "'" + ", description='" + description + "', "
+        final String expectedString = "Task{summary='" + summary + "'" + ", description='" + description + "', "
                 + "taskId=-1, status=NEW}";
         assertEquals(expectedString, task.toString(), "`toString()` return wrong string");
     }

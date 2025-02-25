@@ -30,14 +30,14 @@ class SubtaskTest {
 
     @Test
     void shouldSetEpicId() {
-        int newEpicId = 38;
+        final int newEpicId = 38;
         subtask.setEpicId(newEpicId);
         assertEquals(newEpicId, subtask.getEpicId(), "`setEpicId()` should set epic id");
     }
 
     @Test
     void shouldReturnCorrectString() {
-        String expectedString = "Subtask{summary='" + summary + "'" + ", description='" + description + "', "
+        final String expectedString = "Subtask{summary='" + summary + "'" + ", description='" + description + "', "
                 + "taskId=-1, status=NEW, epicId=-1}";
         assertEquals(expectedString, subtask.toString(), "`toString()` return wrong string");
     }

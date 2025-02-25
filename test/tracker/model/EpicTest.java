@@ -32,7 +32,7 @@ class EpicTest {
 
     @Test
     void shouldSetSubtaskIds() {
-        ArrayList<Integer> newSubtaskIds = new ArrayList<>(2);
+        final ArrayList<Integer> newSubtaskIds = new ArrayList<>(2);
         newSubtaskIds.add(23);
         newSubtaskIds.add(21);
         epic.setSubtaskIds(newSubtaskIds);
@@ -41,7 +41,7 @@ class EpicTest {
 
     @Test
     void shouldReturnCorrectString() {
-        String expectedString = "Epic{summary='" + summary + "'" + ", description='" + description + "', "
+        final String expectedString = "Epic{summary='" + summary + "'" + ", description='" + description + "', "
                 + "taskId=-1, status=NEW, subtaskIds=[]}";
         assertEquals(expectedString, epic.toString(), "`toString()` return wrong string");
     }
