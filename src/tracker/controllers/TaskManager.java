@@ -172,7 +172,7 @@ public class TaskManager {
         final Epic epic = getEpicById(epicId);
         final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
 
-        if (epicId == -1 || subtaskIds.isEmpty()) {
+        if (subtaskIds.isEmpty()) {
             return TaskStatus.NEW;
         }
         boolean hasNew = false;

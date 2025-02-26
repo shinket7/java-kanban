@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
+import tracker.model.TaskStatus;
 
 import java.util.ArrayList;
 
@@ -317,5 +318,51 @@ class TaskManagerTest {
         actualList.add(task2Id);
         assertEquals(expectedList, actualList,
                 "`addTask()`, `addEpic()`, `addSubtask()` should increment inner common issue counter by one");
+    }
+
+    @Test
+    void shouldComputeEpicStatusAccordingToItsSubtaskStatuses() {
+        epic1.setStatus(TaskStatus.DONE);
+        final int epicId = taskManager.addEpic(epic1);
+        assertEquals(TaskStatus.NEW, epic1.getStatus(),
+                "Task manager should compute epic status by its subtask statuses and should change "
+                + "epic status according to that");
+
+        subtask1.setEpicId(epicId);
+        subtask2.setEpicId(epicId);
+        subtask1.setStatus(TaskStatus.DONE);
+        subtask2.setStatus(TaskStatus.DONE);
+        final int subtask1Id = taskManager.addSubtask(subtask1);
+        final int subtask2Id = taskManager.addSubtask(subtask2);
+        final ArrayList<Integer> subtaskIds = new ArrayList<>(2);
+        subtaskIds.add(subtask1Id);
+        subtaskIds.add(subtask2Id);
+        epic1.setSubtaskIds(subtaskIds);
+        taskManager.updateEpic(epic1);
+        assertEquals(TaskStatus.DONE, epic1.getStatus(),
+                "Task manager should set epic status to DONE when all its subtasks are in DONE status");
+
+        subtask1.setStatus(TaskStatus.IN_PROGRESS);
+        taskManager.updateEpic(epic1);
+        assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
+                "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
+                + "not in NEW or DONE status");
+
+        subtask1.setStatus(TaskStatus.NEW);
+        taskManager.updateEpic(epic1);
+        assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
+                "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
+                + "not in NEW or DONE status");
+
+        subtask2.setStatus(TaskStatus.IN_PROGRESS);
+        taskManager.updateEpic(epic1);
+        assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
+                "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
+                + "not in NEW or DONE status");
+
+        subtask2.setStatus(TaskStatus.NEW);
+        taskManager.updateEpic(epic1);
+        assertEquals(TaskStatus.NEW, epic1.getStatus(), "Task manager should set epic status to NEW when "
+                + "all its subtasks are in NEW status");
     }
 }
