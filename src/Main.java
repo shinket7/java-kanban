@@ -11,17 +11,19 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("Поехали!");
-        final Tester tester = new Tester();
-        tester.runTests();
+        final Demo demo = new Demo();
+        demo.runDemo();
     }
 }
 
-class Tester {
-
+class Demo {
     final TaskManager manager = Managers.getDefault();
 
-    public void runTests() {
-        System.out.println("\nCreate first tasks");
+    public void runDemo() {
+
+        showLists();
+
+        System.out.println("Create first tasks");
         final Task task = new Task("Task summary", "Task description");
         manager.addTask(task);
         final Epic epic = new Epic("Epic summary", "Epic description");
@@ -63,6 +65,23 @@ class Tester {
         System.out.println("Remove epic");
         manager.deleteEpicById(epic.getTaskId());
         showLists();
+
+        System.out.println("View history");
+        System.out.println(manager.getHistory());
+
+        System.out.println("\nAdd epic and subtask");
+        final int epicId = manager.addEpic(epic);
+        subtask.setEpicId(epicId);
+        final int subtaskId = manager.addSubtask(subtask);
+        showLists();
+
+        System.out.println("Access to these three issues in next order: task, epic, subtask...");
+        manager.getTaskById(manager.getTaskIds().getFirst());
+        manager.getEpicById(epicId);
+        manager.getSubtaskById(subtaskId);
+
+        System.out.println("View history");
+        System.out.println(manager.getHistory());
     }
 
     private void showLists() {
