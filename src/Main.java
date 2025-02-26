@@ -1,3 +1,4 @@
+import tracker.controllers.InMemoryTaskManager;
 import tracker.controllers.TaskManager;
 import tracker.model.Epic;
 import tracker.model.Subtask;
@@ -17,7 +18,7 @@ public class Main {
 
 class Tester {
 
-    final TaskManager manager = new TaskManager();
+    final TaskManager manager = new InMemoryTaskManager();
 
     public void runTests() {
         System.out.println("\nCreate first tasks");

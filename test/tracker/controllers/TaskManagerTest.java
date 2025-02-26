@@ -30,7 +30,7 @@ class TaskManagerTest {
         epic2 = new Epic("epic2", "desc epic2");
         subtask1 = new Subtask("subtask1", "desc subtask1");
         subtask2 = new Subtask("subtask2", "desc subtask2");
-        taskManager = new TaskManager();
+        taskManager = new InMemoryTaskManager();
     }
 
     @Test
