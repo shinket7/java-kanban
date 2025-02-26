@@ -58,6 +58,14 @@ class InMemoryHistoryManagerTest {
             task.setTaskId(i);
             expectedList.add(task);
         }
-        assertEquals(expectedList, historyManager.getHistory(), "`getHistory()` should return only 10 last added tasks");
+        assertEquals(expectedList, historyManager.getHistory(),
+                "`getHistory()` should return only 10 last added tasks");
+    }
+
+    @Test
+    void shouldNotAddTaskToHistoryWhenItIsNull() {
+        historyManager.add(null);
+        final ArrayList<Task> expectedList = new ArrayList<>(0);
+        assertEquals(expectedList, historyManager.getHistory(), "`add()` should not add tasks which are null");
     }
 }
