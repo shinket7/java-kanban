@@ -30,7 +30,7 @@ class InMemoryTaskManagerTest {
         epic2 = new Epic("epic2", "desc epic2");
         subtask1 = new Subtask("subtask1", "desc subtask1");
         subtask2 = new Subtask("subtask2", "desc subtask2");
-        taskManager = new InMemoryTaskManager();
+        taskManager = new InMemoryTaskManager(new InMemoryHistoryManager());
     }
 
     @Test
@@ -369,7 +369,8 @@ class InMemoryTaskManagerTest {
     @Test
     void shouldReturnEmptyArrayListOfHistoryForNewTaskManager() {
         final ArrayList<Task> expectedList = new ArrayList<>(0);
-        assertEquals(expectedList, taskManager.getHistory(), "`getHistory()` should return empty `ArrayList` for a new task manager");
+        assertEquals(expectedList, taskManager.getHistory(),
+                "`getHistory()` should return empty `ArrayList` for a new task manager");
     }
 
     @Test
@@ -385,7 +386,8 @@ class InMemoryTaskManagerTest {
         expectedList.add(task1);
         expectedList.add(subtask1);
         expectedList.add(epic1);
-        assertEquals(expectedList, taskManager.getHistory(), "All get issue methods should add issues to history which `getHistory()` should return");
+        assertEquals(expectedList, taskManager.getHistory(),
+                "All get issue methods should add issues to history which `getHistory()` should return");
     }
 
     @Test
@@ -403,6 +405,7 @@ class InMemoryTaskManagerTest {
             expectedList.add(task2);
             expectedList.add(epic1);
         }
-        assertEquals(expectedList, taskManager.getHistory(), "`getHistory()` should return only 10 last accessed issues");
+        assertEquals(expectedList, taskManager.getHistory(),
+                "`getHistory()` should return only 10 last accessed issues");
     }
 }
