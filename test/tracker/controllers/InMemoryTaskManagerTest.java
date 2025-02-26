@@ -12,7 +12,7 @@ import tracker.model.TaskStatus;
 
 import java.util.ArrayList;
 
-class TaskManagerTest {
+class InMemoryTaskManagerTest {
 
     private Task task1;
     private Task task2;
@@ -296,7 +296,7 @@ class TaskManagerTest {
         expectedList.add(subtask2Id);
         assertEquals(expectedList, taskManager.getEpicSubtaskIdsByEpicId(epicId),
                 "`getEpicSubtaskIdsByEpicId()` should return `ArrayList` of subtask ids of epic "
-                + "which id is given");
+                        + "which id is given");
     }
 
     @Test
@@ -326,7 +326,7 @@ class TaskManagerTest {
         final int epicId = taskManager.addEpic(epic1);
         assertEquals(TaskStatus.NEW, epic1.getStatus(),
                 "Task manager should compute epic status by its subtask statuses and should change "
-                + "epic status according to that");
+                        + "epic status according to that");
 
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -346,23 +346,63 @@ class TaskManagerTest {
         taskManager.updateEpic(epic1);
         assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
                 "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
-                + "not in NEW or DONE status");
+                        + "not in NEW or DONE status");
 
         subtask1.setStatus(TaskStatus.NEW);
         taskManager.updateEpic(epic1);
         assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
                 "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
-                + "not in NEW or DONE status");
+                        + "not in NEW or DONE status");
 
         subtask2.setStatus(TaskStatus.IN_PROGRESS);
         taskManager.updateEpic(epic1);
         assertEquals(TaskStatus.IN_PROGRESS, epic1.getStatus(),
                 "Task manager should set epic status to IN_PROGRESS when at least of its subtasks "
-                + "not in NEW or DONE status");
+                        + "not in NEW or DONE status");
 
         subtask2.setStatus(TaskStatus.NEW);
         taskManager.updateEpic(epic1);
         assertEquals(TaskStatus.NEW, epic1.getStatus(), "Task manager should set epic status to NEW when "
                 + "all its subtasks are in NEW status");
+    }
+
+    @Test
+    void shouldReturnEmptyArrayListOfHistoryForNewTaskManager() {
+        final ArrayList<Task> expectedList = new ArrayList<>(0);
+        assertEquals(expectedList, taskManager.getHistory(), "`getHistory()` should return empty `ArrayList` for a new task manager");
+    }
+
+    @Test
+    void allGetIssuesMethodsShouldAddIssuesToHistory() {
+        final int epicId = taskManager.addEpic(epic1);
+        subtask1.setEpicId(epicId);
+        final int subtaskId = taskManager.addSubtask(subtask1);
+        final int taskId = taskManager.addTask(task1);
+        taskManager.getTaskById(taskId);
+        taskManager.getSubtaskById(subtaskId);
+        taskManager.getEpicById(epicId);
+        final ArrayList<Task> expectedList = new ArrayList<>(3);
+        expectedList.add(task1);
+        expectedList.add(subtask1);
+        expectedList.add(epic1);
+        assertEquals(expectedList, taskManager.getHistory(), "All get issue methods should add issues to history which `getHistory()` should return");
+    }
+
+    @Test
+    void shouldRemoveFirstAddedToHistoryWhenExceed10Size() {
+        final int task1Id = taskManager.addTask(task1);
+        final int task2Id = taskManager.addTask(task2);
+        final int epicId = taskManager.addEpic(epic1);
+        taskManager.getTaskById(task1Id);
+        for (int i = 0; i < 5; i++) {
+            taskManager.getTaskById(task2Id);
+            taskManager.getEpicById(epicId);
+        }
+        final ArrayList<Task> expectedList = new ArrayList<>(10);
+        for (int i = 0; i < 5; i++) {
+            expectedList.add(task2);
+            expectedList.add(epic1);
+        }
+        assertEquals(expectedList, taskManager.getHistory(), "`getHistory()` should return only 10 last accessed issues");
     }
 }
