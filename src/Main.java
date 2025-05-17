@@ -62,23 +62,48 @@ class Demo {
         manager.addSubtask(subtask2);
         showLists();
 
+        System.out.println("Remove one subtask");
+        manager.deleteSubtaskById(subtask.getTaskId());
+        showLists();
+
         System.out.println("Remove epic");
         manager.deleteEpicById(epic.getTaskId());
         showLists();
 
-        System.out.println("View history");
-        System.out.println(manager.getHistory());
+        final String historyTests = "History tests";
+        final String line = "-".repeat(historyTests.length());
+        System.out.println(line);
+        System.out.println(historyTests);
+        System.out.println(line);
 
-        System.out.println("\nAdd epic and subtask");
-        final int epicId = manager.addEpic(epic);
-        subtask.setEpicId(epicId);
-        final int subtaskId = manager.addSubtask(subtask);
+        System.out.println("\nAll current tasks");
+        final Task task2 = new Task("Task2 summary", "Task2 description");
+        manager.addTask(task2);
+        final Epic epic2 = new Epic("Epic2 summary", "Epic2 description");
+        manager.addEpic(epic);
+        manager.addEpic(epic2);
+        final Subtask subtask3 = new Subtask("Subtask3 summary", "Subtask3 description");
+        subtask.setEpicId(epic.getTaskId());
+        subtask2.setEpicId(epic.getTaskId());
+        subtask3.setEpicId(epic.getTaskId());
+        manager.addSubtask(subtask);
+        manager.addSubtask(subtask2);
+        manager.addSubtask(subtask3);
         showLists();
 
-        System.out.println("Access to these three issues in next order: task, epic, subtask...");
-        manager.getTaskById(manager.getTaskIds().getFirst());
-        manager.getEpicById(epicId);
-        manager.getSubtaskById(subtaskId);
+        System.out.println("\nView history");
+        System.out.println(manager.getHistory());
+
+        System.out.println("Access to these three issues in next order: task, epic, subtask, subtask2, epic, subtask3, "
+                + "task, epic2...");
+        manager.getTaskById(task.getTaskId());
+        manager.getEpicById(epic.getTaskId());
+        manager.getSubtaskById(subtask.getTaskId());
+        manager.getSubtaskById(subtask2.getTaskId());
+        manager.getEpicById(epic.getTaskId());
+        manager.getSubtaskById(subtask3.getTaskId());
+        manager.getTaskById(task.getTaskId());
+        manager.getEpicById(epic2.getTaskId());
 
         System.out.println("View history");
         System.out.println(manager.getHistory());
