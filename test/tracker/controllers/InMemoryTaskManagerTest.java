@@ -389,23 +389,4 @@ class InMemoryTaskManagerTest {
         assertEquals(expectedList, taskManager.getHistory(),
                 "All get issue methods should add issues to history which `getHistory()` should return");
     }
-
-    @Test
-    void shouldRemoveFirstAddedToHistoryWhenExceed10Size() {
-        final int task1Id = taskManager.addTask(task1);
-        final int task2Id = taskManager.addTask(task2);
-        final int epicId = taskManager.addEpic(epic1);
-        taskManager.getTaskById(task1Id);
-        for (int i = 0; i < 5; i++) {
-            taskManager.getTaskById(task2Id);
-            taskManager.getEpicById(epicId);
-        }
-        final ArrayList<Task> expectedList = new ArrayList<>(10);
-        for (int i = 0; i < 5; i++) {
-            expectedList.add(task2);
-            expectedList.add(epic1);
-        }
-        assertEquals(expectedList, taskManager.getHistory(),
-                "`getHistory()` should return only 10 last accessed issues");
-    }
 }

@@ -44,26 +44,6 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void shouldRemoveFirstAddedToHistoryWhenExceed10Size() {
-        Task task = new Task("task", "desc task");
-        task.setTaskId(11);
-        historyManager.add(task);
-        for (int i = 1; i <= 10; i++) {
-            task = new Task("task", "desc task");
-            task.setTaskId(i);
-            historyManager.add(task);
-        }
-        final List<Task> expectedList = new ArrayList<>(10);
-        for (int i = 1; i <= 10; i++) {
-            task = new Task("task", "desc task");
-            task.setTaskId(i);
-            expectedList.add(task);
-        }
-        assertEquals(expectedList, historyManager.getHistory(),
-                "`getHistory()` should return only 10 last added tasks");
-    }
-
-    @Test
     void shouldNotAddTaskToHistoryWhenItIsNull() {
         historyManager.add(null);
         final List<Task> expectedList = new ArrayList<>(0);
