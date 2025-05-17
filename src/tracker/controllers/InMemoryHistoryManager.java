@@ -20,6 +20,16 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
+    public void remove(int id) {
+        for (Task task : history) {
+            if (id == task.getTaskId()) {
+                history.remove(task);
+                break;
+            }
+        }
+    }
+
+    @Override
     public ArrayList<Task> getHistory() {
         return new ArrayList<>(history);
     }
