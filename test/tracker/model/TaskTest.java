@@ -89,4 +89,18 @@ class TaskTest {
                 + "taskId=-1, status=NEW}";
         assertEquals(expectedString, task.toString(), "`toString()` return wrong string");
     }
+
+    @Test
+    void twoTasksWithDifferentIdsShouldHaveDifferentHashCodes() {
+        final Task anotherTask = new Task(summary, description);
+        task.setTaskId(1);
+        anotherTask.setTaskId(2);
+        assertNotEquals(task.hashCode(), anotherTask.hashCode(),
+                "Two tasks with different ids should have different hash codes even if they have the same "
+                + "summary and description.");
+        anotherTask.setSummary("Different summary");
+        anotherTask.setDescription("Different description");
+        assertNotEquals(task.hashCode(), anotherTask.hashCode(),
+                "Two tasks with different ids should have different hash codes");
+    }
 }
