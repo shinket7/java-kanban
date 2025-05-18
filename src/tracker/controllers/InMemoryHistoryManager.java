@@ -13,16 +13,10 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         private TaskNode first;
         private TaskNode last;
-        private int size;
 
         public SinglyLinkedTaskList() {
             first = null;
             last = null;
-            size = 0;
-        }
-
-        public int size() {
-            return size;
         }
 
         public void linkLast(TaskNode node) {
@@ -33,12 +27,11 @@ public class InMemoryHistoryManager implements HistoryManager {
                 node.setPrev(last);
             }
             last = node;
-            size++;
         }
 
         public List<Task> getTasks() {
             TaskNode node = first;
-            final List<Task> list = new ArrayList<>(size());
+            final List<Task> list = new ArrayList<>(historyMap.size());
             while (node != null) {
                 final Task task = node.getTask();
                 list.add(task);
@@ -58,7 +51,6 @@ public class InMemoryHistoryManager implements HistoryManager {
                 next.setPrev(prev);
                 if (first == node) first = next;
             }
-            size--;
         }
     }
 
