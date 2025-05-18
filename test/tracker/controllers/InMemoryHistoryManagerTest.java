@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import tracker.model.Task;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,7 +20,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void shouldReturnInitialEmptyArrayListForNewHistoryManager() {
-        final ArrayList<Task> expectedList = new ArrayList<>(0);
+        final List<Task> expectedList = new ArrayList<>(0);
         assertEquals(expectedList, historyManager.getHistory(),
                 "`getHistory()` should return empty `ArrayList` for a new history manager");
     }
@@ -32,7 +33,7 @@ class InMemoryHistoryManagerTest {
         task = new Task("task", "desc task");
         task.setTaskId(2);
         historyManager.add(task);
-        final ArrayList<Task> expectedList = new ArrayList<>(2);
+        final List<Task> expectedList = new ArrayList<>(2);
         task = new Task("task", "desc task");
         task.setTaskId(1);
         expectedList.add(task);
@@ -43,29 +44,22 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void shouldRemoveFirstAddedToHistoryWhenExceed10Size() {
-        Task task = new Task("task", "desc task");
-        task.setTaskId(11);
-        historyManager.add(task);
-        for (int i = 1; i <= 10; i++) {
-            task = new Task("task", "desc task");
-            task.setTaskId(i);
-            historyManager.add(task);
-        }
-        final ArrayList<Task> expectedList = new ArrayList<>(10);
-        for (int i = 1; i <= 10; i++) {
-            task = new Task("task", "desc task");
-            task.setTaskId(i);
-            expectedList.add(task);
-        }
-        assertEquals(expectedList, historyManager.getHistory(),
-                "`getHistory()` should return only 10 last added tasks");
+    void shouldNotAddTaskToHistoryWhenItIsNull() {
+        historyManager.add(null);
+        final List<Task> expectedList = new ArrayList<>(0);
+        assertEquals(expectedList, historyManager.getHistory(), "`add()` should not add tasks which are null");
     }
 
     @Test
-    void shouldNotAddTaskToHistoryWhenItIsNull() {
-        historyManager.add(null);
-        final ArrayList<Task> expectedList = new ArrayList<>(0);
-        assertEquals(expectedList, historyManager.getHistory(), "`add()` should not add tasks which are null");
+    void shouldRemoveTaskFromHistory() {
+        for (int i = 1; i <= 3; i++) {
+            final Task task = new Task("task", "desc task");
+            task.setTaskId(i);
+            historyManager.add(task);
+        }
+        final List<Task> expectedList = new ArrayList<>(historyManager.getHistory());
+        expectedList.remove(1);
+        historyManager.remove(2);
+        assertEquals(expectedList, historyManager.getHistory(), "`remove()` should remove task from history");
     }
 }
