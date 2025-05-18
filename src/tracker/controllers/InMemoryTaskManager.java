@@ -57,19 +57,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearTasks() {
+        final List<Integer> ids = getTaskIds();
         tasks.clear();
+        for (int id : ids) {
+            historyManager.remove(id);
+        }
     }
 
     @Override
     public void clearEpics() {
+        final List<Integer> epicIds = getEpicIds();
+        final List<Integer> subtaskIds = getSubtaskIds();
         epics.clear();
         subtasks.clear();
+        for (Integer epicId : epicIds) {
+            historyManager.remove(epicId);
+        }
+        for (Integer subtaskId : subtaskIds) {
+            historyManager.remove(subtaskId);
+        }
     }
 
     @Override
     public void clearSubtasks() {
+        final List<Integer> subtaskIds = getSubtaskIds();
+        final List<Integer> epicIds = getEpicIds();
         subtasks.clear();
-        final ArrayList<Integer> epicIds = getEpicIds();
+        for (Integer subtaskId : subtaskIds) {
+            historyManager.remove(subtaskId);
+        }
         for (Integer epicId : epicIds) {
             Epic epic = epics.get(epicId);
             epic.setStatus(TaskStatus.NEW);
@@ -164,13 +180,16 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTaskById(int id) {
         tasks.remove(id);
+        historyManager.remove(id);
     }
 
     @Override
     public void deleteEpicById(int id) {
         final Epic epic = epics.remove(id);
+        historyManager.remove(id);
         for (Integer subtaskId : epic.getSubtaskIds()) {
             subtasks.remove(subtaskId);
+            historyManager.remove(subtaskId);
         }
     }
 
@@ -180,6 +199,7 @@ public class InMemoryTaskManager implements TaskManager {
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         subtasks.remove(id);
+        historyManager.remove(id);
 
         if (epic != null) {
             final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();

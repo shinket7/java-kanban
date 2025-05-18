@@ -110,6 +110,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public void remove(int id) {
         final TaskNode node = historyMap.get(id);
+        if (node == null) return;
         historyMap.remove(id);
         history.removeNode(node);
     }
