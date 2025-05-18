@@ -480,6 +480,6 @@ class InMemoryTaskManagerTest {
         taskManager.deleteSubtaskById(subtask1.getTaskId());
         final List<Task> expected = prepareHistoryList();
         expected.remove(4);
-        assertEquals(expected, taskManager.getHistory(), "`deleteTaskById()` should remove only selected task");
+        assertEquals(expected, taskManager.getHistory(), "`deleteSubtaskById()` should remove only selected subtask");
     }
 }
