@@ -85,7 +85,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void loadFromFile(File file) {
+    public void loadFromFileToCurrentManager(File file) {
         final String fileContent;
         try {
             fileContent = Files.readString(file.toPath());

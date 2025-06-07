@@ -445,8 +445,8 @@ class FileBackedTaskManagerTest {
         final List<Task> expected = prepareHistoryList();
         expected.removeFirst();
         expected.removeFirst();
-        assertEquals(expected, taskManager.getHistory(), "`clearTasks()` should remove all tasks from history "
-                + "but leave all epics and subtasks intact");
+        assertEquals(expected, taskManager.getHistory(),
+                "`clearTasks()` should remove all tasks from history but leave all epics and subtasks intact");
     }
 
     @Test
@@ -458,8 +458,9 @@ class FileBackedTaskManagerTest {
         expected.remove(2);
         expected.remove(2);
         expected.remove(2);
-        assertEquals(expected, taskManager.getHistory(), "`clearEpics()` should remove all epics and their "
-                + "subtasks from history but leave all tasks intact");
+        assertEquals(expected, taskManager.getHistory(),
+                "`clearEpics()` should remove all epics and their subtasks from history but leave all "
+                + "tasks intact");
     }
 
     @Test
@@ -538,8 +539,8 @@ class FileBackedTaskManagerTest {
         final List<String> autosaveFileLines = readAutosaveFile();
         expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
         expectedFileLines.add("2,SUBTASK,subtask1,NEW,desc subtask1,1");
-        assertEquals(expectedFileLines, autosaveFileLines, "`addSubtask()` should add subtask to autosave " +
-                "file");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`addSubtask()` should add subtask to autosave file");
     }
 
     @Test
@@ -573,8 +574,8 @@ class FileBackedTaskManagerTest {
         final List<String> autosaveFileLines = readAutosaveFile();
         expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
         expectedFileLines.add("2,SUBTASK,subtask2,NEW,desc subtask2,1");
-        assertEquals(expectedFileLines, autosaveFileLines, "`updateSubtask() should update subtask in " +
-                "autosave file");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`updateSubtask() should update subtask in autosave file");
     }
 
     List<String> prepareAllIssuesLines() {
@@ -593,13 +594,13 @@ class FileBackedTaskManagerTest {
         addAllIssues();
         taskManager.clearTasks();
         final List<String> autosaveFileLines = readAutosaveFile();
-        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearTasks()` should clear only tasks from " +
-                "autosave file");
+        assertNotEquals(expectedFileLines, autosaveFileLines,
+                "`clearTasks()` should clear only tasks from autosave file");
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(1);
         expectedFileLines.remove(1);
-        assertEquals(expectedFileLines, autosaveFileLines, "`clearTasks()` should clear all tasks from " +
-                "autosave file");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`clearTasks()` should clear all tasks from autosave file");
     }
 
     @Test
@@ -607,15 +608,15 @@ class FileBackedTaskManagerTest {
         addAllIssues();
         taskManager.clearEpics();
         final List<String> autosaveFileLines = readAutosaveFile();
-        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear only epics and " +
-                "subtasks from autosave file");
+        assertNotEquals(expectedFileLines, autosaveFileLines,
+                "`clearEpics()` should clear only epics and subtasks from autosave file");
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(3);
         expectedFileLines.remove(3);
         expectedFileLines.remove(3);
         expectedFileLines.remove(3);
-        assertEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear all epics and " +
-                "subtasks from autosave file");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`clearEpics()` should clear all epics and subtasks from autosave file");
     }
 
     @Test
@@ -623,13 +624,13 @@ class FileBackedTaskManagerTest {
         addAllIssues();
         taskManager.clearSubtasks();
         final List<String> autosaveFileLines = readAutosaveFile();
-        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear only subtasks " +
-                "from autosave file");
+        assertNotEquals(expectedFileLines, autosaveFileLines,
+                "`clearEpics()` should clear only subtasks from autosave file");
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(5);
         expectedFileLines.remove(5);
-        assertEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear all subtasks " +
-                "from autosave file");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`clearEpics()` should clear all subtasks from autosave file");
     }
 
     @Test
@@ -639,8 +640,8 @@ class FileBackedTaskManagerTest {
         final List<String> autosaveFileLines = readAutosaveFile();
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(1);
-        assertEquals(expectedFileLines, autosaveFileLines, "`deleteTaskById()` should delete task from " +
-                "autosave file and only that one task");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`deleteTaskById()` should delete task from autosave file and only that one task");
     }
 
     @Test
@@ -651,8 +652,9 @@ class FileBackedTaskManagerTest {
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(3);
         expectedFileLines.remove(4);
-        assertEquals(expectedFileLines, autosaveFileLines, "`deleteEpicById()` should delete epic and its " +
-                "subtasks from autosave file and only that one epic and its subtasks");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`deleteEpicById()` should delete epic and its subtasks from autosave file and only that one "
+                + "epic and its subtasks");
     }
 
     @Test
@@ -662,8 +664,8 @@ class FileBackedTaskManagerTest {
         final List<String> autosaveFileLines = readAutosaveFile();
         expectedFileLines.addAll(prepareAllIssuesLines());
         expectedFileLines.remove(5);
-        assertEquals(expectedFileLines, autosaveFileLines, "`deleteSubtaskById()` should delete subtask " +
-                "from autosave file and only that one subtask");
+        assertEquals(expectedFileLines, autosaveFileLines,
+                "`deleteSubtaskById()` should delete subtask from autosave file and only that one subtask");
     }
 
     @Test
@@ -689,12 +691,12 @@ class FileBackedTaskManagerTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        taskManager.loadFromFile(tempFile);
-        assertEquals(List.of(task1), taskManager.getTasks(), "`loadFromFile()` should replace tasks by " +
-                "those which are in the file");
-        assertEquals(List.of(epic1), taskManager.getEpics(), "`loadFromFile()` should replace epics by " +
-                "those which are in the file");
-        assertEquals(List.of(subtask1), taskManager.getSubtasks(), "`loadFromFile()` should replace " +
-                "subtasks by those which are in the file");
+        taskManager.loadFromFileToCurrentManager(tempFile);
+        assertEquals(List.of(task1), taskManager.getTasks(),
+                "`loadFromFileToCurrentManager()` should replace tasks by those which are in the file");
+        assertEquals(List.of(epic1), taskManager.getEpics(),
+                "`loadFromFileToCurrentManager()` should replace epics by those which are in the file");
+        assertEquals(List.of(subtask1), taskManager.getSubtasks(),
+                "`loadFromFileToCurrentManager()` should replace subtasks by those which are in the file");
     }
 }
