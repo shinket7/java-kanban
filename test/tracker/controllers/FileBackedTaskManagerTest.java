@@ -12,6 +12,7 @@ import tracker.model.Task;
 import tracker.model.TaskStatus;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +29,6 @@ class FileBackedTaskManagerTest {
     private Epic epic2;
     private FileBackedTaskManager taskManager;
     File autosaveTempFile;
-    File tempFile;
     List<String> expectedFileLines;
 
     @BeforeEach
@@ -41,7 +41,6 @@ class FileBackedTaskManagerTest {
         subtask2 = new Subtask("subtask2", "desc subtask2");
         try {
             autosaveTempFile = File.createTempFile("autosaveTempFile", "csv");
-            tempFile = File.createTempFile("tempFile", "csv");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -665,5 +664,37 @@ class FileBackedTaskManagerTest {
         expectedFileLines.remove(5);
         assertEquals(expectedFileLines, autosaveFileLines, "`deleteSubtaskById()` should delete subtask " +
                 "from autosave file and only that one subtask");
+    }
+
+    @Test
+    void shouldLoadFromFile() {
+        final File tempFile;
+        try {
+            tempFile = File.createTempFile("tempFile", "csv");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        addAllIssues();
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(2);
+        expectedFileLines.remove(3);
+        expectedFileLines.remove(4);
+        try (BufferedWriter writer = Files.newBufferedWriter(tempFile.toPath())) {
+            for (int i = 0; i < expectedFileLines.size(); i++) {
+                if (i != 0) {
+                    writer.write("\n");
+                }
+                writer.write(expectedFileLines.get(i));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        taskManager.loadFromFile(tempFile);
+        assertEquals(List.of(task1), taskManager.getTasks(), "`loadFromFile()` should replace tasks by " +
+                "those which are in the file");
+        assertEquals(List.of(epic1), taskManager.getEpics(), "`loadFromFile()` should replace epics by " +
+                "those which are in the file");
+        assertEquals(List.of(subtask1), taskManager.getSubtasks(), "`loadFromFile()` should replace " +
+                "subtasks by those which are in the file");
     }
 }
