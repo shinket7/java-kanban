@@ -102,6 +102,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         replaceAllIssues(issues);
     }
 
+    public static FileBackedTaskManager loadFromFile(File file) {
+        final FileBackedTaskManager manager = new FileBackedTaskManager(Managers.getDefaultHistory(), file);
+        manager.loadFromFileToCurrentManager(file);
+        return manager;
+    }
+
     @Override
     public void clearTasks() {
         super.clearTasks();
