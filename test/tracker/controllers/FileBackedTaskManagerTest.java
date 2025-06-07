@@ -4,14 +4,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
 import tracker.model.TaskStatus;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +27,9 @@ class FileBackedTaskManagerTest {
     private Epic epic1;
     private Epic epic2;
     private FileBackedTaskManager taskManager;
-    File testFile;
+    File autosaveTempFile;
+    File tempFile;
+    List<String> expectedFileLines;
 
     @BeforeEach
     void beforeEach() {
@@ -35,11 +40,14 @@ class FileBackedTaskManagerTest {
         subtask1 = new Subtask("subtask1", "desc subtask1");
         subtask2 = new Subtask("subtask2", "desc subtask2");
         try {
-            testFile = File.createTempFile("testFile", "csv");
+            autosaveTempFile = File.createTempFile("autosaveTempFile", "csv");
+            tempFile = File.createTempFile("tempFile", "csv");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        taskManager = new FileBackedTaskManager(new InMemoryHistoryManager(), testFile);
+        taskManager = new FileBackedTaskManager(new InMemoryHistoryManager(), autosaveTempFile);
+        expectedFileLines = new ArrayList<>();
+        expectedFileLines.add("id,type,name,status,description,epic");
     }
 
     @Test
@@ -399,25 +407,29 @@ class FileBackedTaskManagerTest {
                 "All get issue methods should add issues to history which `getHistory()` should return");
     }
 
-    void prepareForHistoryClearTests() {
-        final int task1Id = taskManager.addTask(task1);
-        final int task2Id = taskManager.addTask(task2);
+    void addAllIssues() {
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
         final int epic1Id = taskManager.addEpic(epic1);
         final int epic2Id = taskManager.addEpic(epic2);
         subtask1.setEpicId(epic1Id);
         subtask2.setEpicId(epic2Id);
-        final int subtask1Id = taskManager.addSubtask(subtask1);
-        final int subtask2Id = taskManager.addSubtask(subtask2);
-        taskManager.getTaskById(task1Id);
-        taskManager.getTaskById(task2Id);
-        taskManager.getEpicById(epic1Id);
-        taskManager.getEpicById(epic2Id);
-        taskManager.getSubtaskById(subtask1Id);
-        taskManager.getSubtaskById(subtask2Id);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+    }
+
+    void prepareForHistoryClearTests() {
+        addAllIssues();
+        taskManager.getTaskById(task1.getTaskId());
+        taskManager.getTaskById(task2.getTaskId());
+        taskManager.getEpicById(epic1.getTaskId());
+        taskManager.getEpicById(epic2.getTaskId());
+        taskManager.getSubtaskById(subtask1.getTaskId());
+        taskManager.getSubtaskById(subtask2.getTaskId());
     }
 
     List<Task> prepareHistoryList() {
-        final List<Task> list = new ArrayList<>(4);
+        final List<Task> list = new ArrayList<>(6);
         list.add(task1);
         list.add(task2);
         list.add(epic1);
@@ -489,5 +501,169 @@ class FileBackedTaskManagerTest {
         final List<Task> expected = prepareHistoryList();
         expected.remove(4);
         assertEquals(expected, taskManager.getHistory(), "`deleteSubtaskById()` should remove only selected subtask");
+    }
+
+    List<String> readAutosaveFile() {
+        List<String> autosaveFileLines = new ArrayList<>();
+        try (BufferedReader reader = Files.newBufferedReader(autosaveTempFile.toPath())) {
+            while (reader.ready()) {
+                autosaveFileLines.add(reader.readLine());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return autosaveFileLines;
+    }
+
+    @Test
+    void shouldAddTaskToAutosaveFile() {
+        taskManager.addTask(task1);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,TASK,task1,NEW,desc task1,");
+        assertEquals(expectedFileLines, autosaveFileLines, "`addTask()` should add task to autosave file");
+    }
+
+    @Test
+    void shouldAddEpicToAutosaveFile() {
+        taskManager.addEpic(epic1);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
+        assertEquals(expectedFileLines, autosaveFileLines, "`addEpic()` should add epic to autosave file");
+    }
+
+    @Test
+    void shouldAddSubtaskToAutosaveFile() {
+        final int epic1Id = taskManager.addEpic(epic1);
+        subtask1.setEpicId(epic1Id);
+        taskManager.addSubtask(subtask1);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
+        expectedFileLines.add("2,SUBTASK,subtask1,NEW,desc subtask1,1");
+        assertEquals(expectedFileLines, autosaveFileLines, "`addSubtask()` should add subtask to autosave " +
+                "file");
+    }
+
+    @Test
+    void shouldUpdateTaskInAutosaveFile() {
+        final int task1Id = taskManager.addTask(task1);
+        task2.setTaskId(task1Id);
+        taskManager.updateTask(task2);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,TASK,task2,NEW,desc task2,");
+        assertEquals(expectedFileLines, autosaveFileLines, "`updateTask() should update task in autosave file");
+    }
+
+    @Test
+    void shouldUpdateEpicInAutosaveFile() {
+        final int epic1Id = taskManager.addEpic(epic1);
+        epic2.setTaskId(epic1Id);
+        taskManager.updateEpic(epic2);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,EPIC,epic2,NEW,desc epic2,");
+        assertEquals(expectedFileLines, autosaveFileLines, "`updateEpic() should update epic in autosave file");
+    }
+
+    @Test
+    void shouldUpdateSubtaskInAutosaveFile() {
+        final int epic1Id = taskManager.addEpic(epic1);
+        subtask1.setEpicId(epic1Id);
+        subtask2.setEpicId(epic1Id);
+        final int subtask1Id = taskManager.addSubtask(subtask1);
+        subtask2.setTaskId(subtask1Id);
+        taskManager.updateSubtask(subtask2);
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
+        expectedFileLines.add("2,SUBTASK,subtask2,NEW,desc subtask2,1");
+        assertEquals(expectedFileLines, autosaveFileLines, "`updateSubtask() should update subtask in " +
+                "autosave file");
+    }
+
+    List<String> prepareAllIssuesLines() {
+        final List<String> list = new ArrayList<>(6);
+        list.add("1,TASK,task1,NEW,desc task1,");
+        list.add("2,TASK,task2,NEW,desc task2,");
+        list.add("3,EPIC,epic1,NEW,desc epic1,");
+        list.add("4,EPIC,epic2,NEW,desc epic2,");
+        list.add("5,SUBTASK,subtask1,NEW,desc subtask1,3");
+        list.add("6,SUBTASK,subtask2,NEW,desc subtask2,4");
+        return list;
+    }
+
+    @Test
+    void shouldClearTasksFromAutosaveFile() {
+        addAllIssues();
+        taskManager.clearTasks();
+        final List<String> autosaveFileLines = readAutosaveFile();
+        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearTasks()` should clear only tasks from " +
+                "autosave file");
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(1);
+        expectedFileLines.remove(1);
+        assertEquals(expectedFileLines, autosaveFileLines, "`clearTasks()` should clear all tasks from " +
+                "autosave file");
+    }
+
+    @Test
+    void shouldClearEpicsAndSubtasksFromAutosaveFile() {
+        addAllIssues();
+        taskManager.clearEpics();
+        final List<String> autosaveFileLines = readAutosaveFile();
+        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear only epics and " +
+                "subtasks from autosave file");
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(3);
+        expectedFileLines.remove(3);
+        expectedFileLines.remove(3);
+        expectedFileLines.remove(3);
+        assertEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear all epics and " +
+                "subtasks from autosave file");
+    }
+
+    @Test
+    void shouldClearSubtasksFromAutosaveFile() {
+        addAllIssues();
+        taskManager.clearSubtasks();
+        final List<String> autosaveFileLines = readAutosaveFile();
+        assertNotEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear only subtasks " +
+                "from autosave file");
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(5);
+        expectedFileLines.remove(5);
+        assertEquals(expectedFileLines, autosaveFileLines, "`clearEpics()` should clear all subtasks " +
+                "from autosave file");
+    }
+
+    @Test
+    void shouldDeleteTaskFromAutosaveFile() {
+        addAllIssues();
+        taskManager.deleteTaskById(task1.getTaskId());
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(1);
+        assertEquals(expectedFileLines, autosaveFileLines, "`deleteTaskById()` should delete task from " +
+                "autosave file and only that one task");
+    }
+
+    @Test
+    void shouldDeleteEpicFromAutosaveFile() {
+        addAllIssues();
+        taskManager.deleteEpicById(epic1.getTaskId());
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(3);
+        expectedFileLines.remove(4);
+        assertEquals(expectedFileLines, autosaveFileLines, "`deleteEpicById()` should delete epic and its " +
+                "subtasks from autosave file and only that one epic and its subtasks");
+    }
+
+    @Test
+    void shouldDeleteSubtaskFromAutosaveFile() {
+        addAllIssues();
+        taskManager.deleteSubtaskById(subtask1.getTaskId());
+        final List<String> autosaveFileLines = readAutosaveFile();
+        expectedFileLines.addAll(prepareAllIssuesLines());
+        expectedFileLines.remove(5);
+        assertEquals(expectedFileLines, autosaveFileLines, "`deleteSubtaskById()` should delete subtask " +
+                "from autosave file and only that one subtask");
     }
 }
