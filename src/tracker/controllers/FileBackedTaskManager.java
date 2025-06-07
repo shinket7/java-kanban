@@ -6,18 +6,21 @@ import tracker.model.Task;
 import tracker.model.TaskStatus;
 import tracker.model.TaskType;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    public FileBackedTaskManager(HistoryManager historyManager) {
+    private final File autosaveFile;
+
+    public FileBackedTaskManager(HistoryManager historyManager, File autosaveFile) {
         super(historyManager);
+        this.autosaveFile = autosaveFile;
     }
 
     public static String toString(Task task) {
@@ -71,7 +74,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         issues.addAll(getTasks());
         issues.addAll(getEpics());
         issues.addAll(getSubtasks());
-        try (FileWriter writer = new FileWriter("TaskManagerSave.csv", StandardCharsets.UTF_8)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(autosaveFile.toPath(), StandardCharsets.UTF_8)) {
             writer.write("id,type,name,status,description,epic");
             for (Task issue : issues) {
                 writer.write("\n" + toString(issue));
@@ -81,7 +84,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    static public FileBackedTaskManager loadFromFile(File file) {
+    public void loadFromFile(File file) {
         final String fileContent;
         try {
             fileContent = Files.readString(file.toPath());
@@ -95,8 +98,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             Task task = fromString(fileLine);
             issues.add(task);
         }
-        final FileBackedTaskManager manager = new FileBackedTaskManager(Managers.getDefaultHistory());
-        manager.replaceAllIssues(issues);
-        return manager;
+        replaceAllIssues(issues);
+        save();
     }
 }
