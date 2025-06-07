@@ -6,6 +6,8 @@ import tracker.model.Task;
 import tracker.model.TaskStatus;
 import tracker.model.TaskType;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.FileWriter;
@@ -17,15 +19,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager(HistoryManager historyManager) {
         super(historyManager);
     }
-
-//    public void test() {
-//        try (FileWriter writer = new FileWriter("TaskManagerSave.txt", StandardCharsets.UTF_8)) {
-//            writer.write("первая строчка\n");
-//            writer.write("вторая строчка");
-//        } catch (IOException e) {
-//            System.out.println("wrong....");
-//        }
-//    }
 
     public static String toString(Task task) {
         final TaskType taskType = task.getTaskType();
@@ -86,5 +79,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new ManagerSaveException("При сохранении задач в файл произошла ошибка");
         }
+    }
+
+    static public FileBackedTaskManager loadFromFile(File file) {
+        final String fileContent;
+        try {
+            fileContent = Files.readString(file.toPath());
+        } catch (IOException e) {
+            throw new ManagerSaveException("При загрузке задач из файла произошла ошибка");
+        }
+        String[] fileLines = fileContent.split("\\n");
+        final List<Task> issues = new ArrayList<>();
+        for (String fileLine : fileLines) {
+            if (fileLine.startsWith("id")) continue;
+            Task task = fromString(fileLine);
+            issues.add(task);
+        }
+        final FileBackedTaskManager manager = new FileBackedTaskManager(Managers.getDefaultHistory());
+        manager.replaceAllIssues(issues);
+        return manager;
     }
 }
