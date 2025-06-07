@@ -6,6 +6,8 @@ import tracker.model.Task;
 import tracker.model.TaskStatus;
 import tracker.model.TaskType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -69,5 +71,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         result.setTaskId(taskId);
         result.setStatus(taskStatus);
         return result;
+    }
+
+    private void save() {
+        final List<Task> issues = new ArrayList<>();
+        issues.addAll(getTasks());
+        issues.addAll(getEpics());
+        issues.addAll(getSubtasks());
+        try (FileWriter writer = new FileWriter("TaskManagerSave.csv", StandardCharsets.UTF_8)) {
+            writer.write("id,type,name,status,description,epic");
+            for (Task issue : issues) {
+                writer.write("\n" + toString(issue));
+            }
+        } catch (IOException e) {
+            throw new ManagerSaveException("При сохранении задач в файл произошла ошибка");
+        }
     }
 }
