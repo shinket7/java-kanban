@@ -23,7 +23,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.autosaveFile = autosaveFile;
     }
 
-    public static String toString(Task task) {
+    private static String toString(Task task) {
         final TaskType taskType = task.getTaskType();
         final String epicIdText;
         if (taskType == TaskType.SUBTASK) {
@@ -36,7 +36,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 task.getStatus(), task.getDescription(), epicIdText);
     }
 
-    public static Task fromString(String value) {
+    private static Task fromString(String value) {
         String[] parts = value.split(",");
         final int taskId = Integer.parseInt(parts[0]);
         final String taskTypeText = parts[1];
