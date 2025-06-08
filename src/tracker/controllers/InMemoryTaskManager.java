@@ -1,9 +1,6 @@
 package tracker.controllers;
 
-import tracker.model.Epic;
-import tracker.model.Subtask;
-import tracker.model.Task;
-import tracker.model.TaskStatus;
+import tracker.model.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -260,5 +257,25 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
+    }
+
+    public void replaceAllIssues(List<Task> issues) {
+        clearTasks();
+        clearEpics();
+        lastTaskId = 0;
+        for (Task issue : issues) {
+            int issueId = issue.getTaskId();
+            if (issueId > lastTaskId) {
+                lastTaskId = issueId;
+            }
+            TaskType issueType = issue.getTaskType();
+            if (issueType == TaskType.EPIC) {
+                epics.put(issueId, (Epic) issue);
+            } else if (issueType == TaskType.SUBTASK) {
+                subtasks.put(issueId, (Subtask) issue);
+            } else {
+                tasks.put(issueId, issue);
+            }
+        }
     }
 }

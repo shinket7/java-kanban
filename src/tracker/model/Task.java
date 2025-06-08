@@ -7,12 +7,14 @@ public class Task {
     private String description;
     private int taskId;
     private TaskStatus status;
+    protected TaskType taskType;
 
     public Task(String summary, String description) {
         this.summary = summary;
         this.description = description;
         this.taskId = -1;
         this.status = TaskStatus.NEW;
+        taskType = TaskType.TASK;
     }
 
     public String getSummary() {
@@ -45,6 +47,10 @@ public class Task {
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
     }
 
     @Override
