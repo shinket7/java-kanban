@@ -1,5 +1,7 @@
 package tracker.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -7,6 +9,8 @@ public class Task {
     private String description;
     private int taskId;
     private TaskStatus status;
+    private LocalDateTime startTime;
+    private Duration duration;
     protected TaskType taskType;
 
     public Task(String summary, String description) {
@@ -14,6 +18,8 @@ public class Task {
         this.description = description;
         this.taskId = -1;
         this.status = TaskStatus.NEW;
+        startTime = null;
+        duration = null;
         taskType = TaskType.TASK;
     }
 
@@ -51,6 +57,26 @@ public class Task {
 
     public TaskType getTaskType() {
         return taskType;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setStartTimeAndDuration(LocalDateTime startTime, Duration duration) {
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (startTime != null && duration != null) {
+            return startTime.plus(duration);
+        }
+        return null;
     }
 
     @Override
