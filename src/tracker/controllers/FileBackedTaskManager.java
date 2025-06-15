@@ -53,7 +53,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private static Task fromString(String value) {
-        String[] parts = value.split(",");
+        String[] parts = value.split(",", 8);
         final int taskId = Integer.parseInt(parts[0]);
         final String taskTypeText = parts[1];
         final String summary = parts[2];
@@ -115,10 +115,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new ManagerSaveException("При загрузке задач из файла произошла ошибка");
         }
-        String[] fileLines = fileContent.split("\\n");
+        String[] fileLines = fileContent.split("\\n", 8);
         final List<Task> issues = new ArrayList<>();
         for (String fileLine : fileLines) {
-            if (fileLine.startsWith("id")) continue;
+            if (fileLine.startsWith("id")) {
+                continue;
+            }
             Task task = fromString(fileLine);
             issues.add(task);
         }

@@ -46,7 +46,7 @@ class FileBackedTaskManagerTest {
         }
         taskManager = new FileBackedTaskManager(new InMemoryHistoryManager(), autosaveTempFile);
         expectedFileLines = new ArrayList<>();
-        expectedFileLines.add("id,type,name,status,description,epic");
+        expectedFileLines.add("id,type,name,status,description,startTime,duration,epic");
     }
 
     @Test
@@ -519,7 +519,7 @@ class FileBackedTaskManagerTest {
     void shouldAddTaskToAutosaveFile() {
         taskManager.addTask(task1);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,TASK,task1,NEW,desc task1,");
+        expectedFileLines.add("1,TASK,task1,NEW,desc task1,,,");
         assertEquals(expectedFileLines, autosaveFileLines, "`addTask()` should add task to autosave file");
     }
 
@@ -527,7 +527,7 @@ class FileBackedTaskManagerTest {
     void shouldAddEpicToAutosaveFile() {
         taskManager.addEpic(epic1);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,,,");
         assertEquals(expectedFileLines, autosaveFileLines, "`addEpic()` should add epic to autosave file");
     }
 
@@ -537,8 +537,8 @@ class FileBackedTaskManagerTest {
         subtask1.setEpicId(epic1Id);
         taskManager.addSubtask(subtask1);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
-        expectedFileLines.add("2,SUBTASK,subtask1,NEW,desc subtask1,1");
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,,,");
+        expectedFileLines.add("2,SUBTASK,subtask1,NEW,desc subtask1,,,1");
         assertEquals(expectedFileLines, autosaveFileLines,
                 "`addSubtask()` should add subtask to autosave file");
     }
@@ -549,7 +549,7 @@ class FileBackedTaskManagerTest {
         task2.setTaskId(task1Id);
         taskManager.updateTask(task2);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,TASK,task2,NEW,desc task2,");
+        expectedFileLines.add("1,TASK,task2,NEW,desc task2,,,");
         assertEquals(expectedFileLines, autosaveFileLines, "`updateTask() should update task in autosave file");
     }
 
@@ -559,7 +559,7 @@ class FileBackedTaskManagerTest {
         epic2.setTaskId(epic1Id);
         taskManager.updateEpic(epic2);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,EPIC,epic2,NEW,desc epic2,");
+        expectedFileLines.add("1,EPIC,epic2,NEW,desc epic2,,,");
         assertEquals(expectedFileLines, autosaveFileLines, "`updateEpic() should update epic in autosave file");
     }
 
@@ -572,20 +572,20 @@ class FileBackedTaskManagerTest {
         subtask2.setTaskId(subtask1Id);
         taskManager.updateSubtask(subtask2);
         final List<String> autosaveFileLines = readAutosaveFile();
-        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,");
-        expectedFileLines.add("2,SUBTASK,subtask2,NEW,desc subtask2,1");
+        expectedFileLines.add("1,EPIC,epic1,NEW,desc epic1,,,");
+        expectedFileLines.add("2,SUBTASK,subtask2,NEW,desc subtask2,,,1");
         assertEquals(expectedFileLines, autosaveFileLines,
                 "`updateSubtask() should update subtask in autosave file");
     }
 
     List<String> prepareAllIssuesLines() {
         final List<String> list = new ArrayList<>(6);
-        list.add("1,TASK,task1,NEW,desc task1,");
-        list.add("2,TASK,task2,NEW,desc task2,");
-        list.add("3,EPIC,epic1,NEW,desc epic1,");
-        list.add("4,EPIC,epic2,NEW,desc epic2,");
-        list.add("5,SUBTASK,subtask1,NEW,desc subtask1,3");
-        list.add("6,SUBTASK,subtask2,NEW,desc subtask2,4");
+        list.add("1,TASK,task1,NEW,desc task1,,,");
+        list.add("2,TASK,task2,NEW,desc task2,,,");
+        list.add("3,EPIC,epic1,NEW,desc epic1,,,");
+        list.add("4,EPIC,epic2,NEW,desc epic2,,,");
+        list.add("5,SUBTASK,subtask1,NEW,desc subtask1,,,3");
+        list.add("6,SUBTASK,subtask2,NEW,desc subtask2,,,4");
         return list;
     }
 
