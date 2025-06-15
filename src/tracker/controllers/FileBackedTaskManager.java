@@ -10,12 +10,16 @@ import tracker.model.TaskType;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
+    private static final DateTimeFormatter DATE_TIME_PATTERN = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     private final File autosaveFile;
 
@@ -33,8 +37,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } else {
             epicIdText = "";
         }
-        return String.format("%d,%s,%s,%s,%s,%s", task.getTaskId(), task.getTaskType(), task.getSummary(),
-                task.getStatus(), task.getDescription(), epicIdText);
+        final LocalDateTime startTime = task.getStartTime();
+        final Duration duration = task.getDuration();
+        final String startTimeText;
+        final String durationText;
+        if (startTime == null || duration == null) {
+            startTimeText = "";
+            durationText = "";
+        } else {
+            startTimeText = startTime.format(DATE_TIME_PATTERN);
+            durationText = String.valueOf(duration.toMinutes());
+        }
+        return String.format("%d,%s,%s,%s,%s,%s,%s,%s", task.getTaskId(), task.getTaskType(), task.getSummary(),
+                task.getStatus(), task.getDescription(), startTimeText, durationText, epicIdText);
     }
 
     private static Task fromString(String value) {
@@ -44,6 +59,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         final String summary = parts[2];
         final String taskStatusText = parts[3];
         final String description = parts[4];
+        final String startTimeText = parts[5];
+        final String durationText = parts[6];
 
         final TaskStatus taskStatus;
         if (taskStatusText.equals("IN_PROGRESS")) {
@@ -58,7 +75,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         if (taskTypeText.equals("EPIC")) {
             result = new Epic(summary, description);
         } else if (taskTypeText.equals("SUBTASK")) {
-            final int epicId = Integer.parseInt(parts[5]);
+            final int epicId = Integer.parseInt(parts[7]);
             final Subtask subtask = new Subtask(summary, description);
             subtask.setEpicId(epicId);
             result = subtask;
@@ -67,6 +84,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         result.setTaskId(taskId);
         result.setStatus(taskStatus);
+
+        if (!startTimeText.isEmpty() && !durationText.isEmpty()) {
+            final LocalDateTime startTime = LocalDateTime.parse(startTimeText, DATE_TIME_PATTERN);
+            final Duration duration = Duration.ofMinutes(Long.parseLong(durationText));
+            result.setStartTimeAndDuration(startTime, duration);
+        }
         return result;
     }
 
@@ -76,7 +99,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         issues.addAll(getEpics());
         issues.addAll(getSubtasks());
         try (BufferedWriter writer = Files.newBufferedWriter(autosaveFile.toPath(), StandardCharsets.UTF_8)) {
-            writer.write("id,type,name,status,description,epic");
+            writer.write("id,type,name,status,description,startTime,duration,epic");
             for (Task issue : issues) {
                 writer.write("\n" + toString(issue));
             }
