@@ -2,6 +2,8 @@ package tracker.controllers;
 
 import tracker.model.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -153,6 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics.put(epicId, epic);
         final TaskStatus computedEpicStatus = computeEpicStatus(epicId);
         epic.setStatus(computedEpicStatus);
+        computeAndChangeEpicStartTimeAndDuration(epicId);
     }
 
     @Override
@@ -170,6 +173,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             final TaskStatus computedEpicStatus = computeEpicStatus(epicId);
             epic.setStatus(computedEpicStatus);
+            computeAndChangeEpicStartTimeAndDuration(epicId);
             epics.put(epicId, epic);
         }
     }
@@ -204,6 +208,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             final TaskStatus computedEpicStatus = computeEpicStatus(epicId);
             epic.setStatus(computedEpicStatus);
+            computeAndChangeEpicStartTimeAndDuration(epicId);
             epics.put(epicId, epic);
         }
 
@@ -252,6 +257,37 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             return TaskStatus.NEW;
         }
+    }
+
+    private void computeAndChangeEpicStartTimeAndDuration(int epicId) {
+        final Epic epic = epics.get(epicId);
+        final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
+
+        if (subtaskIds.isEmpty()) {
+            return;
+        }
+        LocalDateTime firstTimeStart = null;
+        LocalDateTime lastTimeStart = null;
+        LocalDateTime lastTimeEnd = null;
+        for (Integer subtaskId : subtaskIds) {
+            Subtask subtask = subtasks.get(subtaskId);
+            LocalDateTime subtaskTimeStart = subtask.getStartTime();
+            if (subtaskTimeStart == null) {
+                continue;
+            }
+            if (firstTimeStart == null || firstTimeStart.isAfter(subtaskTimeStart)) {
+                firstTimeStart = subtaskTimeStart;
+            }
+            if (lastTimeStart == null || lastTimeStart.isBefore(subtaskTimeStart)) {
+                lastTimeStart = subtaskTimeStart;
+                final Duration duration = Duration.between(firstTimeStart, lastTimeStart.plus(subtask.getDuration()));
+                lastTimeEnd = lastTimeStart.plus(duration);
+            }
+        }
+        if (firstTimeStart == null) {
+            return;
+        }
+        epic.setStartTimeAndDuration(firstTimeStart, Duration.between(firstTimeStart, lastTimeEnd));
     }
 
     @Override
