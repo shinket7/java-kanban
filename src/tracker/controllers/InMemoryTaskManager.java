@@ -61,10 +61,10 @@ public class InMemoryTaskManager implements TaskManager {
         return dateTime.minusMinutes(remainder).withSecond(0).withNano(0);
     }
 
-    private Set<LocalDateTime> convertToPeriod15Stamps(LocalDateTime start, LocalDateTime finish) {
+    private Collection<LocalDateTime> convertToPeriod15Stamps(LocalDateTime start, LocalDateTime finish) {
         final LocalDateTime startPeriod15Stamp = getPeriod15Stamp(start);
         final LocalDateTime finishPeriod15Stamp = getPeriod15Stamp(finish);
-        final Set<LocalDateTime> period15Stamps = new TreeSet<>();
+        final Collection<LocalDateTime> period15Stamps = new ArrayList<>();
         LocalDateTime currentPeriod15Stamp = startPeriod15Stamp;
         while (!currentPeriod15Stamp.isAfter(finishPeriod15Stamp)) {
             period15Stamps.add(currentPeriod15Stamp);
@@ -75,15 +75,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void deleteTimePeriodsByTask(Task task) {
         final LocalDateTime endTime = task.getEndTime();
-        if (endTime != null) {
-            Set<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
-            for (LocalDateTime period15Stamp : period15Stamps) {
-                final List<Task> tasksInPeriod = timePeriodsForTaskStart.get(period15Stamp);
-                if (tasksInPeriod.size() == 1) {
-                    timePeriodsForTaskStart.remove(period15Stamp);
-                } else {
-                    tasksInPeriod.remove(task);
-                }
+        if (endTime == null) {
+            return;
+        }
+        Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
+        for (LocalDateTime period15Stamp : period15Stamps) {
+            final List<Task> tasksInPeriod = timePeriodsForTaskStart.get(period15Stamp);
+            if (tasksInPeriod.size() == 1) {
+                timePeriodsForTaskStart.remove(period15Stamp);
+            } else {
+                tasksInPeriod.remove(task);
             }
         }
     }
@@ -192,9 +193,27 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        tasks.put(task.getTaskId(), task);
+        final int taskId = task.getTaskId();
+        final Task oldTask = tasks.get(taskId);
+        tasks.put(taskId, task);
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
+        }
+        if (oldTask != null) {
+            deleteTimePeriodsByTask(oldTask);
+        }
+
+        final LocalDateTime endTime = task.getEndTime();
+        if (endTime == null) {
+            return;
+        }
+        final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
+        for (LocalDateTime period15Stamp : period15Stamps) {
+            if (timePeriodsForTaskStart.containsKey(period15Stamp)) {
+                timePeriodsForTaskStart.get(period15Stamp).add(task);
+            } else {
+                timePeriodsForTaskStart.put(period15Stamp, new ArrayList<>(List.of(task)));
+            }
         }
     }
 
@@ -212,22 +231,39 @@ public class InMemoryTaskManager implements TaskManager {
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         final int subtaskId = subtask.getTaskId();
+        final Task oldSubtask = tasks.get(subtaskId);
         subtasks.put(subtaskId, subtask);
         if (subtask.getStartTime() != null) {
             prioritizedTasks.add(subtask);
         }
-
-        if (epic != null) {
-            final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
-            if (!subtaskIds.contains(subtaskId)) {
-                subtaskIds.add(subtaskId);
-            }
-
-            final TaskStatus computedEpicStatus = computeEpicStatus(epicId);
-            epic.setStatus(computedEpicStatus);
-            computeAndChangeEpicStartTimeAndDuration(epicId);
-            epics.put(epicId, epic);
+        if (oldSubtask != null) {
+            deleteTimePeriodsByTask(oldSubtask);
         }
+
+        final LocalDateTime endTime = subtask.getEndTime();
+        if (endTime != null) {
+            final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(subtask.getStartTime(), endTime);
+            for (LocalDateTime period15Stamp : period15Stamps) {
+                if (timePeriodsForTaskStart.containsKey(period15Stamp)) {
+                    timePeriodsForTaskStart.get(period15Stamp).add(subtask);
+                } else {
+                    timePeriodsForTaskStart.put(period15Stamp, new ArrayList<>(List.of(subtask)));
+                }
+            }
+        }
+
+        if (epic == null) {
+            return;
+        }
+        final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
+        if (!subtaskIds.contains(subtaskId)) {
+            subtaskIds.add(subtaskId);
+        }
+
+        final TaskStatus computedEpicStatus = computeEpicStatus(epicId);
+        epic.setStatus(computedEpicStatus);
+        computeAndChangeEpicStartTimeAndDuration(epicId);
+        epics.put(epicId, epic);
     }
 
     @Override
