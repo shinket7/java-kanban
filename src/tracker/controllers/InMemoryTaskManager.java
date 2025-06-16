@@ -162,6 +162,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addTask(Task task) {
+        if (taskOverlapsWithExisting(task)) {
+            return -1;
+        }
         final int id = ++lastTaskId;
         task.setTaskId(id);
         updateTask(task);
@@ -178,6 +181,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addSubtask(Subtask subtask) {
+        if (taskOverlapsWithExisting(subtask)) {
+            return -1;
+        }
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         if (epic == null) {
@@ -203,7 +209,7 @@ public class InMemoryTaskManager implements TaskManager {
                 || task1EndTime.isAfter(task2StartTime) && task1EndTime.isBefore(task2EndTime);
     }
 
-    public boolean doesTaskOverlapWithExisting(Task task) {
+    public boolean taskOverlapsWithExisting(Task task) {
         final LocalDateTime endTime = task.getEndTime();
         if (endTime == null) {
             return false;
@@ -229,6 +235,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
+        if (taskOverlapsWithExisting(task)) {
+            return;
+        }
         final int taskId = task.getTaskId();
         final Task oldTask = tasks.get(taskId);
         tasks.put(taskId, task);
@@ -264,6 +273,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
+        if (taskOverlapsWithExisting(subtask)) {
+            return;
+        }
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         final int subtaskId = subtask.getTaskId();
