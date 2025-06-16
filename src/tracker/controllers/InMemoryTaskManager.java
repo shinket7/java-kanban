@@ -13,7 +13,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
     private final Set<Task> prioritizedTasks;
-    private final TreeMap<LocalDateTime, List<Task>> timePeriodsForTaskStart;
+    private final TreeMap<LocalDateTime, Collection<Task>> occupiedPeriod15StampsAndTasks;
     private final HistoryManager historyManager;
 
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -22,7 +22,7 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         prioritizedTasks = new TreeSet<>();
-        timePeriodsForTaskStart = new TreeMap<>();
+        occupiedPeriod15StampsAndTasks = new TreeMap<>();
         this.historyManager = historyManager;
     }
 
@@ -80,9 +80,9 @@ public class InMemoryTaskManager implements TaskManager {
         }
         Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
         for (LocalDateTime period15Stamp : period15Stamps) {
-            final List<Task> tasksInPeriod = timePeriodsForTaskStart.get(period15Stamp);
+            final Collection<Task> tasksInPeriod = occupiedPeriod15StampsAndTasks.get(period15Stamp);
             if (tasksInPeriod.size() == 1) {
-                timePeriodsForTaskStart.remove(period15Stamp);
+                occupiedPeriod15StampsAndTasks.remove(period15Stamp);
             } else {
                 tasksInPeriod.remove(task);
             }
@@ -191,6 +191,42 @@ public class InMemoryTaskManager implements TaskManager {
         return id;
     }
 
+    private static boolean areTasksOverlapped(Task task1, Task task2) {
+        final LocalDateTime task1EndTime = task1.getEndTime();
+        final LocalDateTime task2EndTime = task2.getEndTime();
+        if (task1EndTime == null || task2EndTime == null) {
+            return false;
+        }
+        final LocalDateTime task1StartTime = task1.getStartTime();
+        final LocalDateTime task2StartTime = task2.getStartTime();
+        return task1StartTime.isAfter(task2StartTime) && task1StartTime.isBefore(task2EndTime)
+                || task1EndTime.isAfter(task2StartTime) && task1EndTime.isBefore(task2EndTime);
+    }
+
+    public boolean doesTaskOverlapWithExisting(Task task) {
+        final LocalDateTime endTime = task.getEndTime();
+        if (endTime == null) {
+            return false;
+        }
+        final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
+        final Set<Task> tasksForCheck = new HashSet<>();
+        for (LocalDateTime period15Stamp : period15Stamps) {
+            if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
+                final Collection<Task> currentTasks = occupiedPeriod15StampsAndTasks.get(period15Stamp);
+                tasksForCheck.addAll(currentTasks);
+            }
+        }
+        if (tasksForCheck.isEmpty()) {
+            return false;
+        }
+        for (Task taskInCheck : tasksForCheck) {
+            if (areTasksOverlapped(task, taskInCheck)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void updateTask(Task task) {
         final int taskId = task.getTaskId();
@@ -209,10 +245,10 @@ public class InMemoryTaskManager implements TaskManager {
         }
         final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
         for (LocalDateTime period15Stamp : period15Stamps) {
-            if (timePeriodsForTaskStart.containsKey(period15Stamp)) {
-                timePeriodsForTaskStart.get(period15Stamp).add(task);
+            if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
+                occupiedPeriod15StampsAndTasks.get(period15Stamp).add(task);
             } else {
-                timePeriodsForTaskStart.put(period15Stamp, new ArrayList<>(List.of(task)));
+                occupiedPeriod15StampsAndTasks.put(period15Stamp, new ArrayList<>(List.of(task)));
             }
         }
     }
@@ -244,10 +280,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (endTime != null) {
             final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(subtask.getStartTime(), endTime);
             for (LocalDateTime period15Stamp : period15Stamps) {
-                if (timePeriodsForTaskStart.containsKey(period15Stamp)) {
-                    timePeriodsForTaskStart.get(period15Stamp).add(subtask);
+                if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
+                    occupiedPeriod15StampsAndTasks.get(period15Stamp).add(subtask);
                 } else {
-                    timePeriodsForTaskStart.put(period15Stamp, new ArrayList<>(List.of(subtask)));
+                    occupiedPeriod15StampsAndTasks.put(period15Stamp, new ArrayList<>(List.of(subtask)));
                 }
             }
         }
