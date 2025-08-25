@@ -7,6 +7,8 @@ import tracker.model.Subtask;
 import tracker.model.Task;
 import tracker.model.TaskStatus;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -400,5 +402,36 @@ abstract public class TaskManagerTest {
         list.add(subtask1);
         list.add(subtask2);
         return list;
+    }
+
+    @Test
+    void shouldNotAddTwoOverlappedTasks() {
+        final LocalDateTime task1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
+        final LocalDateTime task2Start = LocalDateTime.of(2025, 1, 1, 11, 0);
+        final Duration task1Duration = Duration.ofMinutes(65);
+        final Duration task2Duration = Duration.ofMinutes(25);
+        task1.setStartTimeAndDuration(task1Start, task1Duration);
+        task2.setStartTimeAndDuration(task2Start, task2Duration);
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+        assertEquals(List.of(task1), taskManager.getTasks(),
+                "The task which overlaps with other already existing task should not be added");
+    }
+
+    @Test
+    void shouldNotAddTwoOverlappedSubtasks() {
+        final LocalDateTime subtask1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
+        final LocalDateTime subtask2Start = LocalDateTime.of(2025, 1, 1, 11, 0);
+        final Duration subtask1Duration = Duration.ofMinutes(65);
+        final Duration subtask2Duration = Duration.ofMinutes(25);
+        subtask1.setStartTimeAndDuration(subtask1Start, subtask1Duration);
+        subtask2.setStartTimeAndDuration(subtask2Start, subtask2Duration);
+        final int epicId = taskManager.addEpic(epic1);
+        subtask1.setEpicId(epicId);
+        subtask2.setEpicId(epicId);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+        assertEquals(List.of(subtask1), taskManager.getSubtasks(),
+                "The subtask which overlaps with other already existing subtask should not be added");
     }
 }
