@@ -450,4 +450,27 @@ abstract public class TaskManagerTest {
         assertEquals(Duration.ofMinutes(30), epic1.getDuration(),
                 "Epic's duration should equals to sum of its subtask durations");
     }
+
+    @Test
+    void shouldReturnSortedByStartTimeIssues() {
+        final LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0);
+        final LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 7);
+        final LocalDateTime time3 = LocalDateTime.of(2025, 1, 1, 12, 0);
+        final Duration duration = Duration.ofMinutes(6);
+        final int epicId = taskManager.addEpic(epic1);
+        task1.setStartTimeAndDuration(time1, duration);
+        task2.setStartTimeAndDuration(time3, duration);
+        subtask1.setStartTimeAndDuration(time2, duration);
+        subtask1.setEpicId(epicId);
+        subtask2.setEpicId(epicId);
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+        assertEquals(3, taskManager.getPrioritizedTasks().size(),
+                "`getPrioritizedTasks()` should not return issues without start time");
+        final List<Task> expectedList = List.of(task1, subtask1, task2);
+        assertEquals(expectedList, taskManager.getPrioritizedTasks(),
+                "`getPrioritizedTasks()` should return sorted by start time issues list");
+    }
 }
