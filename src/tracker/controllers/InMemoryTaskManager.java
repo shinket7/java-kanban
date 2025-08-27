@@ -405,6 +405,8 @@ public class InMemoryTaskManager implements TaskManager {
         final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
 
         if (subtaskIds.isEmpty()) {
+            epic.setStartTimeAndDuration(null, null);
+            epic.setEndTime(null);
             return;
         }
         LocalDateTime firstTimeStart = null;
