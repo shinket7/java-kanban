@@ -410,9 +410,10 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime firstTimeStart = null;
         LocalDateTime lastTimeStart = null;
         LocalDateTime lastTimeEnd = null;
+        Duration totalDuration = Duration.ZERO;
         for (Integer subtaskId : subtaskIds) {
             Subtask subtask = subtasks.get(subtaskId);
-            LocalDateTime subtaskTimeStart = subtask.getStartTime();
+            final LocalDateTime subtaskTimeStart = subtask.getStartTime();
             if (subtaskTimeStart == null) {
                 continue;
             }
@@ -424,11 +425,13 @@ public class InMemoryTaskManager implements TaskManager {
                 final Duration duration = Duration.between(firstTimeStart, lastTimeStart.plus(subtask.getDuration()));
                 lastTimeEnd = lastTimeStart.plus(duration);
             }
+            totalDuration = totalDuration.plus(subtask.getDuration());
         }
         if (firstTimeStart == null) {
             return;
         }
-        epic.setStartTimeAndDuration(firstTimeStart, Duration.between(firstTimeStart, lastTimeEnd));
+        epic.setStartTimeAndDuration(firstTimeStart, totalDuration);
+        epic.setEndTime(lastTimeEnd);
     }
 
     @Override
