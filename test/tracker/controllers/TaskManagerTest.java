@@ -434,4 +434,20 @@ abstract public class TaskManagerTest {
         assertEquals(List.of(subtask1), taskManager.getSubtasks(),
                 "The subtask which overlaps with other already existing subtask should not be added");
     }
+
+    @Test
+    void shouldAddSubtasksDurationsToComputeEpicDuration() {
+        final LocalDateTime subtask1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
+        final LocalDateTime subtask2Start = LocalDateTime.of(2025, 1, 1, 15, 0);
+        final Duration duration = Duration.ofMinutes(15);
+        final int epicId = taskManager.addEpic(epic1);
+        subtask1.setStartTimeAndDuration(subtask1Start, duration);
+        subtask2.setStartTimeAndDuration(subtask2Start, duration);
+        subtask1.setEpicId(epicId);
+        subtask2.setEpicId(epicId);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+        assertEquals(Duration.ofMinutes(30), epic1.getDuration(),
+                "Epic's duration should equals to sum of its subtask durations");
+    }
 }
