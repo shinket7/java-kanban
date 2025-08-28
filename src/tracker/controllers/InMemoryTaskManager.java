@@ -13,7 +13,6 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
     private final Set<Task> prioritizedTasks;
-    private final TreeMap<LocalDateTime, Collection<Task>> occupiedPeriod15StampsAndTasks;
     private final HistoryManager historyManager;
 
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -22,7 +21,6 @@ public class InMemoryTaskManager implements TaskManager {
         epics = new HashMap<>();
         subtasks = new HashMap<>();
         prioritizedTasks = new TreeSet<>();
-        occupiedPeriod15StampsAndTasks = new TreeMap<>();
         this.historyManager = historyManager;
     }
 
@@ -56,45 +54,9 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(subtasks.keySet());
     }
 
-    private LocalDateTime getPeriod15Stamp(LocalDateTime dateTime) {
-        final int remainder = dateTime.getMinute() % 15;
-        return dateTime.minusMinutes(remainder).withSecond(0).withNano(0);
-    }
-
-    private Collection<LocalDateTime> convertToPeriod15Stamps(LocalDateTime start, LocalDateTime finish) {
-        final LocalDateTime startPeriod15Stamp = getPeriod15Stamp(start);
-        final LocalDateTime finishPeriod15Stamp = getPeriod15Stamp(finish);
-        final Collection<LocalDateTime> period15Stamps = new ArrayList<>();
-        LocalDateTime currentPeriod15Stamp = startPeriod15Stamp;
-        while (!currentPeriod15Stamp.isAfter(finishPeriod15Stamp)) {
-            period15Stamps.add(currentPeriod15Stamp);
-            currentPeriod15Stamp = currentPeriod15Stamp.plusMinutes(15);
-        }
-        return period15Stamps;
-    }
-
-    private void deleteTimePeriodsByTask(Task task) {
-        final LocalDateTime endTime = task.getEndTime();
-        if (endTime == null) {
-            return;
-        }
-        Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
-        for (LocalDateTime period15Stamp : period15Stamps) {
-            final Collection<Task> tasksInPeriod = occupiedPeriod15StampsAndTasks.get(period15Stamp);
-            if (tasksInPeriod.size() == 1) {
-                occupiedPeriod15StampsAndTasks.remove(period15Stamp);
-            } else {
-                tasksInPeriod.remove(task);
-            }
-        }
-    }
-
     @Override
     public void clearTasks() {
         final List<Integer> ids = getTaskIds();
-        for (Task task : tasks.values()) {
-            deleteTimePeriodsByTask(task);
-        }
         tasks.clear();
         prioritizedTasks.removeIf(issue -> issue.getTaskType() == TaskType.SUBTASK);
         for (int id : ids) {
@@ -107,9 +69,6 @@ public class InMemoryTaskManager implements TaskManager {
         final List<Integer> epicIds = getEpicIds();
         final List<Integer> subtaskIds = getSubtaskIds();
         epics.clear();
-        for (Task task : subtasks.values()) {
-            deleteTimePeriodsByTask(task);
-        }
         subtasks.clear();
         prioritizedTasks.removeIf(issue -> issue.getTaskType() == TaskType.SUBTASK);
         for (Integer epicId : epicIds) {
@@ -124,9 +83,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void clearSubtasks() {
         final List<Integer> subtaskIds = getSubtaskIds();
         final List<Integer> epicIds = getEpicIds();
-        for (Task task : subtasks.values()) {
-            deleteTimePeriodsByTask(task);
-        }
         subtasks.clear();
         prioritizedTasks.removeIf(issue -> issue.getTaskType() == TaskType.TASK);
         for (Integer subtaskId : subtaskIds) {
@@ -197,40 +153,14 @@ public class InMemoryTaskManager implements TaskManager {
         return id;
     }
 
-    private static boolean areTasksOverlapped(Task task1, Task task2) {
-        final LocalDateTime task1EndTime = task1.getEndTime();
-        final LocalDateTime task2EndTime = task2.getEndTime();
-        if (task1EndTime == null || task2EndTime == null) {
-            return false;
-        }
-        final LocalDateTime task1StartTime = task1.getStartTime();
-        final LocalDateTime task2StartTime = task2.getStartTime();
-        return task1StartTime.isAfter(task2StartTime) && task1StartTime.isBefore(task2EndTime)
-                || task1EndTime.isAfter(task2StartTime) && task1EndTime.isBefore(task2EndTime);
-    }
-
     public boolean taskOverlapsWithExisting(Task task) {
         final LocalDateTime endTime = task.getEndTime();
         if (endTime == null) {
             return false;
         }
-        final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
-        final Set<Task> tasksForCheck = new HashSet<>();
-        for (LocalDateTime period15Stamp : period15Stamps) {
-            if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
-                final Collection<Task> currentTasks = occupiedPeriod15StampsAndTasks.get(period15Stamp);
-                tasksForCheck.addAll(currentTasks);
-            }
-        }
-        if (tasksForCheck.isEmpty()) {
-            return false;
-        }
-        for (Task taskInCheck : tasksForCheck) {
-            if (areTasksOverlapped(task, taskInCheck)) {
-                return true;
-            }
-        }
-        return false;
+        final LocalDateTime startTime = task.getStartTime();
+        return !prioritizedTasks.stream().allMatch(t -> startTime.isAfter(t.getEndTime())
+                || endTime.isBefore(t.getStartTime()));
     }
 
     @Override
@@ -239,26 +169,9 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
         final int taskId = task.getTaskId();
-        final Task oldTask = tasks.get(taskId);
         tasks.put(taskId, task);
         if (task.getStartTime() != null) {
             prioritizedTasks.add(task);
-        }
-        if (oldTask != null) {
-            deleteTimePeriodsByTask(oldTask);
-        }
-
-        final LocalDateTime endTime = task.getEndTime();
-        if (endTime == null) {
-            return;
-        }
-        final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(task.getStartTime(), endTime);
-        for (LocalDateTime period15Stamp : period15Stamps) {
-            if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
-                occupiedPeriod15StampsAndTasks.get(period15Stamp).add(task);
-            } else {
-                occupiedPeriod15StampsAndTasks.put(period15Stamp, new ArrayList<>(List.of(task)));
-            }
         }
     }
 
@@ -279,25 +192,9 @@ public class InMemoryTaskManager implements TaskManager {
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         final int subtaskId = subtask.getTaskId();
-        final Task oldSubtask = tasks.get(subtaskId);
         subtasks.put(subtaskId, subtask);
         if (subtask.getStartTime() != null) {
             prioritizedTasks.add(subtask);
-        }
-        if (oldSubtask != null) {
-            deleteTimePeriodsByTask(oldSubtask);
-        }
-
-        final LocalDateTime endTime = subtask.getEndTime();
-        if (endTime != null) {
-            final Collection<LocalDateTime> period15Stamps = convertToPeriod15Stamps(subtask.getStartTime(), endTime);
-            for (LocalDateTime period15Stamp : period15Stamps) {
-                if (occupiedPeriod15StampsAndTasks.containsKey(period15Stamp)) {
-                    occupiedPeriod15StampsAndTasks.get(period15Stamp).add(subtask);
-                } else {
-                    occupiedPeriod15StampsAndTasks.put(period15Stamp, new ArrayList<>(List.of(subtask)));
-                }
-            }
         }
 
         if (epic == null) {
@@ -318,7 +215,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskById(int id) {
         final Task task = tasks.remove(id);
         prioritizedTasks.remove(task);
-        deleteTimePeriodsByTask(task);
         historyManager.remove(id);
     }
 
@@ -329,7 +225,6 @@ public class InMemoryTaskManager implements TaskManager {
         for (Integer subtaskId : epic.getSubtaskIds()) {
             final Subtask subtask = subtasks.remove(subtaskId);
             prioritizedTasks.remove(subtask);
-            deleteTimePeriodsByTask(subtask);
             historyManager.remove(subtaskId);
         }
     }
@@ -341,7 +236,6 @@ public class InMemoryTaskManager implements TaskManager {
         final Epic epic = epics.get(epicId);
         subtasks.remove(id);
         prioritizedTasks.remove(subtask);
-        deleteTimePeriodsByTask(subtask);
         historyManager.remove(id);
 
         if (epic != null) {
@@ -442,12 +336,6 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public void replaceAllIssues(List<Task> issues) {
-        for (Task task : tasks.values()) {
-            deleteTimePeriodsByTask(task);
-        }
-        for (Task task : subtasks.values()) {
-            deleteTimePeriodsByTask(task);
-        }
         clearTasks();
         clearEpics();
         prioritizedTasks.clear();
