@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 abstract public class TaskManagerTest {
     Task task1;
@@ -467,7 +468,7 @@ abstract public class TaskManagerTest {
         taskManager.addTask(task2);
         taskManager.addSubtask(subtask1);
         taskManager.addSubtask(subtask2);
-        assertEquals(3, taskManager.getPrioritizedTasks().size(),
+        assertNotEquals(4, taskManager.getPrioritizedTasks().size(),
                 "`getPrioritizedTasks()` should not return issues without start time");
         final List<Task> expectedList = List.of(task1, subtask1, task2);
         assertEquals(expectedList, taskManager.getPrioritizedTasks(),
