@@ -71,6 +71,7 @@ public class Demo {
         System.out.println("\nAll current tasks");
         final Task task2 = new Task("Task2 summary", "Task2 description");
         manager.addTask(task2);
+        epic.setSubtaskIds(new ArrayList<>(0));
         final Epic epic2 = new Epic("Epic2 summary", "Epic2 description");
         manager.addEpic(epic);
         manager.addEpic(epic2);

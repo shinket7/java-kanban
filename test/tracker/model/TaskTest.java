@@ -3,8 +3,15 @@ package tracker.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class TaskTest {
 
@@ -56,7 +63,8 @@ class TaskTest {
 
     @Test
     void shouldReturnInitialStatusForNewTask() {
-        assertEquals(TaskStatus.NEW, task.getStatus(), "`getStatus()` should return the NEW status for a new task");
+        assertEquals(TaskStatus.NEW, task.getStatus(),
+                "`getStatus()` should return the NEW status for a new task");
     }
 
     @Test
@@ -91,6 +99,12 @@ class TaskTest {
     }
 
     @Test
+    void shouldNotBeEqual() {
+        assertFalse(task.equals(null), "Task should not be equal to `null`.");
+        assertFalse(task.equals("string"), "Task should not be equal to other class.");
+    }
+
+    @Test
     void twoTasksWithDifferentIdsShouldHaveDifferentHashCodes() {
         final Task anotherTask = new Task(summary, description);
         task.setTaskId(1);
@@ -102,5 +116,55 @@ class TaskTest {
         anotherTask.setDescription("Different description");
         assertNotEquals(task.hashCode(), anotherTask.hashCode(),
                 "Two tasks with different ids should have different hash codes");
+    }
+
+    @Test
+    void shouldSetAndReturnStartTimeAndDuration() {
+        LocalDateTime startTime = LocalDateTime.now();
+        Duration duration = Duration.ofMinutes(21);
+        task.setStartTimeAndDuration(startTime, duration);
+        assertEquals(startTime, task.getStartTime(), "Task should return start time.");
+        assertEquals(duration, task.getDuration(), "Task should return duration.");
+
+        startTime = LocalDateTime.now().plusMinutes(2);
+        duration = duration.plusMinutes(2);
+        task.setStartTimeAndDuration(startTime, duration);
+        assertEquals(startTime, task.getStartTime(), "`setStartTimeAndDuration()` should change start time '"
+                + "and `getStartTime()` should return that new start time.");
+        assertEquals(duration, task.getDuration(), "`setStartTimeAndDuration()` should change duration and '"
+                + "`getStartTime()` should return that new duration.");
+    }
+
+    @Test
+    void shouldNotReturnEndTime() {
+        assertNull(task.getEndTime(), "`getEndTime()` should return `null` when there is neither start time, "
+                + "nor duration.");
+        task.setStartTimeAndDuration(null, Duration.ofMinutes(21));
+        assertNull(task.getEndTime(), "`getEndTime()` should return `null` when there is no start time.");
+        task.setStartTimeAndDuration(LocalDateTime.now(), null);
+        assertNull(task.getEndTime(), "`getEndTime()` should return `null` when there is no duration.");
+    }
+
+    @Test
+    void shouldReturnEndTime() {
+        final LocalDateTime startTime = LocalDateTime.now();
+        final Duration duration = Duration.ofMinutes(21);
+        task.setStartTimeAndDuration(startTime, duration);
+        assertEquals(startTime.plus(duration), task.getEndTime(), "`getEndTime()` should return end time which "
+                + "should equals start time plus duration.");
+    }
+
+    @Test
+    void shouldCompareWithTask() {
+        final Task task2 = new Task(summary, description);
+        final LocalDateTime firstStartTime = LocalDateTime.now();
+        final Duration duration = Duration.ofMinutes(21);
+        task.setStartTimeAndDuration(firstStartTime, duration);
+        task2.setStartTimeAndDuration(firstStartTime, duration);
+        assertEquals(0, task.compareTo(task2), "Task should be equal in `compareTo()` with other task "
+                + "with same start time.");
+        task2.setStartTimeAndDuration(firstStartTime.plusMinutes(22), duration);
+        assertTrue(task.compareTo(task2) < 0, "compareTo()` should return less than 0 when other "
+                + "task's start time is after of current task's start time.");
     }
 }
