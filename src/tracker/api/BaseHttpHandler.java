@@ -1,5 +1,6 @@
 package tracker.api;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import tracker.controllers.TaskManager;
 
@@ -9,9 +10,11 @@ import java.nio.charset.StandardCharsets;
 
 public class BaseHttpHandler {
     final protected TaskManager taskManager;
+    final protected Gson gson;
 
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
+        gson = new Gson();
     }
 
     public void sendText(HttpExchange exchange, String text) throws IOException {
