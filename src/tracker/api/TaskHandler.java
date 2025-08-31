@@ -31,7 +31,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
         }
         final String methodName = exchange.getRequestMethod();
         if (pathArray.length == 3) {
-            if (!methodName.equals("GET")) {
+            if (!methodName.equals("GET") && !methodName.equals("DELETE")) {
                 sendNotAllowed(exchange);
                 return;
             }
@@ -40,6 +40,10 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 taskId = Integer.parseInt(pathArray[2]);
             } catch (NumberFormatException e) {
                 sendBadRequest(exchange);
+                return;
+            }
+            if (methodName.equals("DELETE")) {
+                handleDelete(exchange, taskId);
                 return;
             }
             handleGetById(exchange, taskId);
@@ -177,5 +181,16 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             }
         }
         sendCreated(exchange);
+    }
+
+    private void handleDelete(HttpExchange exchange, int taskId) throws IOException {
+        try {
+            taskManager.getTaskById(taskId);
+        } catch (NotFoundException e) {
+            sendNotFound(exchange);
+            return;
+        }
+        taskManager.deleteTaskById(taskId);
+        sendText(exchange, "");
     }
 }
