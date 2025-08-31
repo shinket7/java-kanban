@@ -1,12 +1,15 @@
 package tracker.api;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import tracker.controllers.TaskManager;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class BaseHttpHandler {
     final protected TaskManager taskManager;
@@ -14,7 +17,11 @@ public class BaseHttpHandler {
 
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
-        gson = new Gson();
+        gson = new GsonBuilder()
+                .serializeNulls()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+                .registerTypeAdapter(Duration.class, new DurationTypeAdapter())
+                .create();
     }
 
     public void sendText(HttpExchange exchange, String text) throws IOException {
@@ -28,17 +35,21 @@ public class BaseHttpHandler {
 
     public void sendBadRequest(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(400, 0);
+        exchange.close();
     }
 
     public void sendNotFound(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(404, 0);
+        exchange.close();
     }
 
     public void sendNotAllowed(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(405, 0);
+        exchange.close();
     }
 
     public void sendHasOverlaps(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(406, 0);
+        exchange.close();
     }
 }
