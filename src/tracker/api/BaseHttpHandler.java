@@ -33,6 +33,11 @@ public class BaseHttpHandler {
         }
     }
 
+    public void sendCreated(HttpExchange exchange) throws IOException {
+        exchange.sendResponseHeaders(201, 0);
+        exchange.close();
+    }
+
     public void sendBadRequest(HttpExchange exchange) throws IOException {
         exchange.sendResponseHeaders(400, 0);
         exchange.close();
