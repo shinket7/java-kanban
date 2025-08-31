@@ -3,6 +3,7 @@ package tracker.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -13,8 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 abstract public class TaskManagerTest {
     Task task1;
@@ -76,7 +76,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldAddTask() {
+    void shouldAddTask() throws OverlapException {
         final int task1Id = taskManager.addTask(task1);
         final int task2Id = taskManager.addTask(task2);
         final ArrayList<Task> expectedList = new ArrayList<>(2);
@@ -100,7 +100,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldAddSubtask() {
+    void shouldAddSubtask() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -116,25 +116,25 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldReturnMinusOneAndShouldNotAddSubtaskWithWrongEpicId() {
+    void ShouldNotAddSubtaskWithWrongEpicIdAndShouldThrowException() {
         final ArrayList<Subtask> expectedList = new ArrayList<>(0);
-        final int subtask1Id = taskManager.addSubtask(subtask1);
+        assertThrows(NotFoundException.class, () -> taskManager.addSubtask(subtask1),
+                "`addSubtask() for subtask with initial value of the epic id field should throw "
+                + "`NotFoundException`");
         assertEquals(expectedList, taskManager.getSubtasks(),
                 "`addSubtask()` shouldn't add subtask with initial value of the epic id field");
-        assertEquals(-1, subtask1Id,
-                "`addSubtask()` should return -1 with initial value of the epic id field of a subtask");
 
         final int epicId = taskManager.addEpic(epic1);
         subtask2.setEpicId(epicId + 1500);
-        final int subtask2Id = taskManager.addSubtask(subtask2);
+        assertThrows(NotFoundException.class, () -> taskManager.addSubtask(subtask2),
+                "`addSubtask() for subtask epic id of a nonexistent epic should throw "
+                        + "`NotFoundException`");
         assertEquals(expectedList, taskManager.getSubtasks(),
                 "`addSubtask()` shouldn't add subtask with epic id of a nonexistent epic");
-        assertEquals(-1, subtask2Id,
-                "`addSubtask()` should return -1 with epic id of a nonexistent epic");
     }
 
     @Test
-    void shouldReturnTaskIds() {
+    void shouldReturnTaskIds() throws OverlapException {
         final int task1Id = taskManager.addTask(task1);
         final int task2Id = taskManager.addTask(task2);
         final ArrayList<Integer> expectedList = new ArrayList<>(2);
@@ -156,7 +156,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldReturnSubtaskIds() {
+    void shouldReturnSubtaskIds() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -171,35 +171,25 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldUpdateTask() {
+    void shouldUpdateTask() throws OverlapException, NotFoundException {
         final int taskId = taskManager.addTask(task1);
         task2.setTaskId(taskId);
         taskManager.updateTask(task2);
-        final Task taskAfterUpdate;
-        try {
-            taskAfterUpdate = taskManager.getTaskById(taskId);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        final Task taskAfterUpdate = taskManager.getTaskById(taskId);
         assertEquals(task2, taskAfterUpdate, "`updateTask()` should update task to the new one");
     }
 
     @Test
-    void shouldUpdateEpic() {
+    void shouldUpdateEpic() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addTask(epic1);
         epic2.setTaskId(epicId);
         taskManager.updateEpic(epic2);
-        final Epic epicAfterUpdate;
-        try {
-            epicAfterUpdate = taskManager.getEpicById(epicId);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        final Epic epicAfterUpdate = taskManager.getEpicById(epicId);
         assertEquals(epic2, epicAfterUpdate, "`updateEpic()` should update epic to the new one");
     }
 
     @Test
-    void shouldUpdateSubtask() {
+    void shouldUpdateSubtask() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -207,17 +197,12 @@ abstract public class TaskManagerTest {
         final int subtaskId = taskManager.addSubtask(subtask1);
         subtask2.setTaskId(subtaskId);
         taskManager.updateSubtask(subtask2);
-        final Subtask subtaskAfterUpdate;
-        try {
-            subtaskAfterUpdate = taskManager.getSubtaskById(subtaskId);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        final Subtask subtaskAfterUpdate = taskManager.getSubtaskById(subtaskId);
         assertEquals(subtask2, subtaskAfterUpdate, "`updateSubtask()` should update subtask to the new one");
     }
 
     @Test
-    void shouldClearTask() {
+    void shouldClearTask() throws OverlapException {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         taskManager.clearTasks();
@@ -237,7 +222,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldClearSubtask() {
+    void shouldClearSubtask() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -251,7 +236,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldDeleteTask() {
+    void shouldDeleteTask() throws OverlapException {
         final int taskId = taskManager.addTask(task1);
         taskManager.addTask(task2);
         taskManager.deleteTaskById(taskId);
@@ -273,7 +258,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldDeleteSubtask() {
+    void shouldDeleteSubtask() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -288,7 +273,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveSubtasksWithEpicDeletion() {
+    void shouldRemoveSubtasksWithEpicDeletion() throws OverlapException, NotFoundException {
         final int epic1Id = taskManager.addEpic(epic1);
         final int epic2Id = taskManager.addEpic(epic2);
         subtask1.setEpicId(epic1Id);
@@ -304,7 +289,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldReturnSubtaskIdsByEpicId() {
+    void shouldReturnSubtaskIdsByEpicId() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
@@ -320,7 +305,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldIncrementInnerCommonIssueIdsCounterByOneWithAnyNewIssue() {
+    void shouldIncrementInnerCommonIssueIdsCounterByOneWithAnyNewIssue() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         final int task1Id = taskManager.addTask(task1);
@@ -341,7 +326,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldComputeEpicStatusAccordingToItsSubtaskStatuses() {
+    void shouldComputeEpicStatusAccordingToItsSubtaskStatuses() throws OverlapException, NotFoundException {
         epic1.setStatus(TaskStatus.DONE);
         final int epicId = taskManager.addEpic(epic1);
         assertEquals(TaskStatus.NEW, epic1.getStatus(),
@@ -394,18 +379,14 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void allGetIssuesMethodsShouldAddIssuesToHistory() {
+    void allGetIssuesMethodsShouldAddIssuesToHistory() throws OverlapException, NotFoundException {
         final int epicId = taskManager.addEpic(epic1);
         subtask1.setEpicId(epicId);
         final int subtaskId = taskManager.addSubtask(subtask1);
         final int taskId = taskManager.addTask(task1);
-        try {
-            taskManager.getTaskById(taskId);
-            taskManager.getSubtaskById(subtaskId);
-            taskManager.getEpicById(epicId);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        taskManager.getTaskById(taskId);
+        taskManager.getSubtaskById(subtaskId);
+        taskManager.getEpicById(epicId);
         final ArrayList<Task> expectedList = new ArrayList<>(3);
         expectedList.add(task1);
         expectedList.add(subtask1);
@@ -426,7 +407,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldNotAddTwoOverlappedTasks() {
+    void shouldNotAddTwoOverlappedTasks() throws OverlapException {
         final LocalDateTime task1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
         final LocalDateTime task2Start = LocalDateTime.of(2025, 1, 1, 11, 0);
         final Duration task1Duration = Duration.ofMinutes(65);
@@ -434,13 +415,15 @@ abstract public class TaskManagerTest {
         task1.setStartTimeAndDuration(task1Start, task1Duration);
         task2.setStartTimeAndDuration(task2Start, task2Duration);
         taskManager.addTask(task1);
-        taskManager.addTask(task2);
+        assertThrows(OverlapException.class, () -> taskManager.addTask(task2),
+                "`addTask()` for task which overlaps with other already existing task should throw "
+                + "`OverlapException`");
         assertEquals(List.of(task1), taskManager.getTasks(),
                 "The task which overlaps with other already existing task should not be added");
     }
 
     @Test
-    void shouldNotAddTwoOverlappedSubtasks() {
+    void shouldNotAddTwoOverlappedSubtasksAndShouldThrowException() throws OverlapException, NotFoundException {
         final LocalDateTime subtask1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
         final LocalDateTime subtask2Start = LocalDateTime.of(2025, 1, 1, 11, 0);
         final Duration subtask1Duration = Duration.ofMinutes(65);
@@ -451,13 +434,14 @@ abstract public class TaskManagerTest {
         subtask1.setEpicId(epicId);
         subtask2.setEpicId(epicId);
         taskManager.addSubtask(subtask1);
-        taskManager.addSubtask(subtask2);
+        assertThrows(OverlapException.class, () -> taskManager.addSubtask(subtask2),
+                "`addSubtask()` for overlapped subtask should throw `OverlapException`");
         assertEquals(List.of(subtask1), taskManager.getSubtasks(),
                 "The subtask which overlaps with other already existing subtask should not be added");
     }
 
     @Test
-    void shouldAddSubtasksDurationsToComputeEpicDuration() {
+    void shouldAddSubtasksDurationsToComputeEpicDuration() throws OverlapException, NotFoundException {
         final LocalDateTime subtask1Start = LocalDateTime.of(2025, 1, 1, 10, 0);
         final LocalDateTime subtask2Start = LocalDateTime.of(2025, 1, 1, 15, 0);
         final Duration duration = Duration.ofMinutes(15);
@@ -473,7 +457,7 @@ abstract public class TaskManagerTest {
     }
 
     @Test
-    void shouldReturnSortedByStartTimeIssues() {
+    void shouldReturnSortedByStartTimeIssues() throws OverlapException, NotFoundException {
         final LocalDateTime time1 = LocalDateTime.of(2025, 1, 1, 10, 0);
         final LocalDateTime time2 = LocalDateTime.of(2025, 1, 1, 10, 7);
         final LocalDateTime time3 = LocalDateTime.of(2025, 1, 1, 12, 0);

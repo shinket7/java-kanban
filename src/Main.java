@@ -1,4 +1,5 @@
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 
 public class Main {
 
@@ -7,7 +8,7 @@ public class Main {
         final Demo demo = new Demo();
         try {
             demo.runDemo();
-        }  catch (NotFoundException e) {
+        }  catch (OverlapException | NotFoundException e) {
             throw new RuntimeException(e);
         }
     }

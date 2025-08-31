@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Task;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
         return new InMemoryTaskManager(new InMemoryHistoryManager());
     }
 
-    void prepareForHistoryClearTests() {
+    void prepareForHistoryClearTests() throws OverlapException, NotFoundException {
         final int task1Id = taskManager.addTask(task1);
         final int task2Id = taskManager.addTask(task2);
         final int epic1Id = taskManager.addEpic(epic1);
@@ -25,16 +26,12 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
         subtask2.setEpicId(epic2Id);
         final int subtask1Id = taskManager.addSubtask(subtask1);
         final int subtask2Id = taskManager.addSubtask(subtask2);
-        try {
-            taskManager.getTaskById(task1Id);
-            taskManager.getTaskById(task2Id);
-            taskManager.getEpicById(epic1Id);
-            taskManager.getEpicById(epic2Id);
-            taskManager.getSubtaskById(subtask1Id);
-            taskManager.getSubtaskById(subtask2Id);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        taskManager.getTaskById(task1Id);
+        taskManager.getTaskById(task2Id);
+        taskManager.getEpicById(epic1Id);
+        taskManager.getEpicById(epic2Id);
+        taskManager.getSubtaskById(subtask1Id);
+        taskManager.getSubtaskById(subtask2Id);
     }
 
     List<Task> prepareHistoryList() {
@@ -49,7 +46,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveTasksFromHistoryWhenClear() {
+    void shouldRemoveTasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearTasks();
         final List<Task> expected = prepareHistoryList();
@@ -60,7 +57,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveEpicsAndSubtasksFromHistoryWhenClear() {
+    void shouldRemoveEpicsAndSubtasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearEpics();
         final List<Task> expected = prepareHistoryList();
@@ -73,7 +70,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveSubtasksFromHistoryWhenClear() {
+    void shouldRemoveSubtasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearSubtasks();
         final List<Task> expected = prepareHistoryList();
@@ -84,7 +81,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveTaskFromHistoryWhenDeleted() {
+    void shouldRemoveTaskFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteTaskById(task1.getTaskId());
         final List<Task> expected = prepareHistoryList();
@@ -93,7 +90,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveEpicAndItsSubtasksFromHistoryWhenDeleted() {
+    void shouldRemoveEpicAndItsSubtasksFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteEpicById(epic1.getTaskId());
         final List<Task> expected = prepareHistoryList();
@@ -104,7 +101,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveSubtaskFromHistoryWhenDeleted() {
+    void shouldRemoveSubtaskFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteSubtaskById(subtask1.getTaskId());
         final List<Task> expected = prepareHistoryList();

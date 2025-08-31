@@ -1,6 +1,7 @@
 package tracker.controllers;
 
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -33,17 +34,17 @@ public interface TaskManager {
 
     Subtask getSubtaskById(int id) throws NotFoundException;
 
-    int addTask(Task task);
+    int addTask(Task task) throws OverlapException;
 
     int addEpic(Epic epic);
 
-    int addSubtask(Subtask subtask);
+    int addSubtask(Subtask subtask) throws OverlapException, NotFoundException;
 
-    void updateTask(Task task);
+    void updateTask(Task task) throws OverlapException;
 
     void updateEpic(Epic epic);
 
-    void updateSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException;
 
     void deleteTaskById(int id);
 

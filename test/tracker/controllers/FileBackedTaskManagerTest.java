@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Task;
 
 import java.io.BufferedReader;
@@ -38,7 +39,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
         super.beforeEach();
     }
 
-    void addAllIssues() {
+    void addAllIssues() throws OverlapException, NotFoundException {
         taskManager.addTask(task1);
         taskManager.addTask(task2);
         final int epic1Id = taskManager.addEpic(epic1);
@@ -49,22 +50,18 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
         taskManager.addSubtask(subtask2);
     }
 
-    void prepareForHistoryClearTests() {
+    void prepareForHistoryClearTests() throws OverlapException, NotFoundException {
         addAllIssues();
-        try {
-            taskManager.getTaskById(task1.getTaskId());
-            taskManager.getTaskById(task2.getTaskId());
-            taskManager.getEpicById(epic1.getTaskId());
-            taskManager.getEpicById(epic2.getTaskId());
-            taskManager.getSubtaskById(subtask1.getTaskId());
-            taskManager.getSubtaskById(subtask2.getTaskId());
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        taskManager.getTaskById(task1.getTaskId());
+        taskManager.getTaskById(task2.getTaskId());
+        taskManager.getEpicById(epic1.getTaskId());
+        taskManager.getEpicById(epic2.getTaskId());
+        taskManager.getSubtaskById(subtask1.getTaskId());
+        taskManager.getSubtaskById(subtask2.getTaskId());
     }
 
     @Test
-    void shouldRemoveTasksFromHistoryWhenClear() {
+    void shouldRemoveTasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearTasks();
         final List<Task> expected = prepareHistoryList();
@@ -75,7 +72,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveEpicsAndSubtasksFromHistoryWhenClear() {
+    void shouldRemoveEpicsAndSubtasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearEpics();
         final List<Task> expected = prepareHistoryList();
@@ -89,7 +86,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveSubtasksFromHistoryWhenClear() {
+    void shouldRemoveSubtasksFromHistoryWhenClear() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.clearSubtasks();
         final List<Task> expected = prepareHistoryList();
@@ -100,7 +97,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveTaskFromHistoryWhenDeleted() {
+    void shouldRemoveTaskFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteTaskById(task1.getTaskId());
         final List<Task> expected = prepareHistoryList();
@@ -109,7 +106,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveEpicAndItsSubtasksFromHistoryWhenDeleted() {
+    void shouldRemoveEpicAndItsSubtasksFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteEpicById(epic1.getTaskId());
         final List<Task> expected = prepareHistoryList();
@@ -120,7 +117,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldRemoveSubtaskFromHistoryWhenDeleted() {
+    void shouldRemoveSubtaskFromHistoryWhenDeleted() throws OverlapException, NotFoundException {
         prepareForHistoryClearTests();
         taskManager.deleteSubtaskById(subtask1.getTaskId());
         final List<Task> expected = prepareHistoryList();
@@ -141,7 +138,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldAddTaskToAutosaveFile() {
+    void shouldAddTaskToAutosaveFile() throws OverlapException {
         taskManager.addTask(task1);
         final List<String> autosaveFileLines = readAutosaveFile();
         expectedFileLines.add("1,TASK,task1,NEW,desc task1,,,");
@@ -157,7 +154,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldAddSubtaskToAutosaveFile() {
+    void shouldAddSubtaskToAutosaveFile() throws OverlapException, NotFoundException {
         final int epic1Id = taskManager.addEpic(epic1);
         subtask1.setEpicId(epic1Id);
         taskManager.addSubtask(subtask1);
@@ -169,7 +166,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldUpdateTaskInAutosaveFile() {
+    void shouldUpdateTaskInAutosaveFile() throws OverlapException {
         final int task1Id = taskManager.addTask(task1);
         task2.setTaskId(task1Id);
         taskManager.updateTask(task2);
@@ -189,7 +186,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldUpdateSubtaskInAutosaveFile() {
+    void shouldUpdateSubtaskInAutosaveFile() throws OverlapException, NotFoundException {
         final int epic1Id = taskManager.addEpic(epic1);
         subtask1.setEpicId(epic1Id);
         subtask2.setEpicId(epic1Id);
@@ -215,7 +212,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldClearTasksFromAutosaveFile() {
+    void shouldClearTasksFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.clearTasks();
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -229,7 +226,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldClearEpicsAndSubtasksFromAutosaveFile() {
+    void shouldClearEpicsAndSubtasksFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.clearEpics();
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -245,7 +242,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldClearSubtasksFromAutosaveFile() {
+    void shouldClearSubtasksFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.clearSubtasks();
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -259,7 +256,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldDeleteTaskFromAutosaveFile() {
+    void shouldDeleteTaskFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.deleteTaskById(task1.getTaskId());
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -270,7 +267,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldDeleteEpicFromAutosaveFile() {
+    void shouldDeleteEpicFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.deleteEpicById(epic1.getTaskId());
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -283,7 +280,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldDeleteSubtaskFromAutosaveFile() {
+    void shouldDeleteSubtaskFromAutosaveFile() throws OverlapException, NotFoundException {
         addAllIssues();
         taskManager.deleteSubtaskById(subtask1.getTaskId());
         final List<String> autosaveFileLines = readAutosaveFile();
@@ -293,7 +290,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
                 "`deleteSubtaskById()` should delete subtask from autosave file and only that one subtask");
     }
 
-    File createTempFileForLoad() {
+    File createTempFileForLoad() throws OverlapException, NotFoundException {
         final File tempFile;
         try {
             tempFile = File.createTempFile("tempFile", "csv");
@@ -319,7 +316,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldLoadFromFileToCurrentManager() {
+    void shouldLoadFromFileToCurrentManager() throws OverlapException, NotFoundException {
         final File tempFile = createTempFileForLoad();
         FileBackedTaskManager fileBackedTaskManager = (FileBackedTaskManager) taskManager;
         fileBackedTaskManager.loadFromFileToCurrentManager(tempFile);
@@ -332,7 +329,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
     }
 
     @Test
-    void shouldLoadFromFile() {
+    void shouldLoadFromFile() throws OverlapException, NotFoundException {
         final File tempFile = createTempFileForLoad();
         FileBackedTaskManager taskManagerFromFile = FileBackedTaskManager.loadFromFile(tempFile);
         taskManagerFromFile.loadFromFileToCurrentManager(tempFile);

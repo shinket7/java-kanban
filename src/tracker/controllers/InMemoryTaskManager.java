@@ -1,6 +1,7 @@
 package tracker.controllers;
 
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.*;
 
 import java.time.Duration;
@@ -127,9 +128,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addTask(Task task) {
+    public int addTask(Task task) throws OverlapException {
         if (taskOverlapsWithExisting(task)) {
-            return -1;
+            throw new OverlapException("Task overlaps with existing tasks");
         }
         final int id = ++lastTaskId;
         task.setTaskId(id);
@@ -146,14 +147,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addSubtask(Subtask subtask) {
+    public int addSubtask(Subtask subtask) throws OverlapException, NotFoundException{
         if (taskOverlapsWithExisting(subtask)) {
-            return -1;
+            throw new OverlapException("Subtask overlaps with existing subtasks");
         }
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
         if (epic == null) {
-            return -1;
+            throw new NotFoundException("Epic is not found by id " + epicId);
         }
 
         final int id = ++lastTaskId;
@@ -174,9 +175,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateTask(Task task) {
+    public void updateTask(Task task) throws OverlapException {
         if (taskOverlapsWithExisting(task)) {
-            return;
+            throw new OverlapException("Task overlaps with existing tasks");
         }
         final int taskId = task.getTaskId();
         tasks.put(taskId, task);
@@ -195,9 +196,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException{
         if (taskOverlapsWithExisting(subtask)) {
-            return;
+            throw new OverlapException("Subtask overlaps with existing subtasks");
         }
         final int epicId = subtask.getEpicId();
         final Epic epic = epics.get(epicId);
@@ -208,7 +209,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         if (epic == null) {
-            return;
+            throw new NotFoundException("Epic is not found by id " + epicId);
         }
         final ArrayList<Integer> subtaskIds = epic.getSubtaskIds();
         if (!subtaskIds.contains(subtaskId)) {

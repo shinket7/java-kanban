@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Task;
 import tracker.model.TaskStatus;
 
@@ -68,8 +69,6 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
-        System.out.println("Зашли в пост");
-
         final JsonElement body = JsonParser.parseString(new String(exchange.getRequestBody().readAllBytes()));
         if (!body.isJsonObject()) {
             sendBadRequest(exchange);
@@ -96,8 +95,6 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             return;
         }
 
-        System.out.println("Первое 1111");
-
         Integer taskIdInt = null;
         String startTimeStr = null;
         String durationStr = null;
@@ -114,15 +111,13 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             taskIdInt = taskIdPrim.getAsInt();
         }
 
-        System.out.println("Второе");
-
         if (startTime != null && !startTime.isJsonNull()) {
             if (!startTime.isJsonPrimitive()) {
                 sendBadRequest(exchange);
                 return;
             }
             final JsonPrimitive startTimePrim = startTime.getAsJsonPrimitive();
-            if (!startTimePrim.isNumber()) {
+            if (!startTimePrim.isString()) {
                 sendBadRequest(exchange);
                 return;
             }
@@ -134,7 +129,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 return;
             }
             final JsonPrimitive durationPrim = duration.getAsJsonPrimitive();
-            if (!durationPrim.isNumber()) {
+            if (!durationPrim.isString()) {
                 sendBadRequest(exchange);
                 return;
             }
@@ -162,7 +157,11 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
         }
 
         if (taskIdInt == null) {
-            taskManager.addTask(task);
+            try {
+                taskManager.addTask(task);
+            } catch (OverlapException e) {
+                sendHasOverlaps(exchange);
+            }
         } else {
             try {
                 taskManager.getTaskById(taskIdInt);
@@ -171,11 +170,12 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 return;
             }
             task.setTaskId(taskIdInt);
-            taskManager.updateTask(task);
+            try {
+                taskManager.updateTask(task);
+            } catch (OverlapException e) {
+                sendHasOverlaps(exchange);
+            }
         }
         sendCreated(exchange);
-
-        System.out.println("Преобразовали таск");
-        System.out.println(task);
     }
 }
