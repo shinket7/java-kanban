@@ -1,6 +1,8 @@
 package tracker.api;
 
 import com.sun.net.httpserver.HttpServer;
+import tracker.controllers.Managers;
+import tracker.controllers.TaskManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,6 +17,8 @@ public class HttpTaskServer {
     }
 
     public void start() {
+        final TaskManager taskManager = Managers.getDefault();
+
         try {
             server = HttpServer.create(new InetSocketAddress(8080), 0);
         } catch (IOException e) {
