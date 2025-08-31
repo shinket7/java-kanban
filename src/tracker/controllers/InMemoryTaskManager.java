@@ -14,7 +14,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, Subtask> subtasks;
-    private final Set<Task> prioritizedTasks;
+    private Set<Task> prioritizedTasks;
     private final HistoryManager historyManager;
 
     public InMemoryTaskManager(HistoryManager historyManager) {
@@ -182,6 +182,9 @@ public class InMemoryTaskManager implements TaskManager {
         final int taskId = task.getTaskId();
         tasks.put(taskId, task);
         if (task.getStartTime() != null) {
+            prioritizedTasks = new TreeSet<>(
+                    prioritizedTasks.stream().filter(t -> t.getTaskId() != taskId).toList()
+            );
             prioritizedTasks.add(task);
         }
     }
@@ -205,6 +208,9 @@ public class InMemoryTaskManager implements TaskManager {
         final int subtaskId = subtask.getTaskId();
         subtasks.put(subtaskId, subtask);
         if (subtask.getStartTime() != null) {
+            prioritizedTasks = new TreeSet<>(
+                    prioritizedTasks.stream().filter(t -> t.getTaskId() != subtaskId).toList()
+            );
             prioritizedTasks.add(subtask);
         }
 
