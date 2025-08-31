@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import tracker.exceptions.NotFoundException;
 import tracker.model.Task;
 
 import java.util.ArrayList;
@@ -24,12 +25,16 @@ class InMemoryTaskManagerTest extends TaskManagerTest {
         subtask2.setEpicId(epic2Id);
         final int subtask1Id = taskManager.addSubtask(subtask1);
         final int subtask2Id = taskManager.addSubtask(subtask2);
-        taskManager.getTaskById(task1Id);
-        taskManager.getTaskById(task2Id);
-        taskManager.getEpicById(epic1Id);
-        taskManager.getEpicById(epic2Id);
-        taskManager.getSubtaskById(subtask1Id);
-        taskManager.getSubtaskById(subtask2Id);
+        try {
+            taskManager.getTaskById(task1Id);
+            taskManager.getTaskById(task2Id);
+            taskManager.getEpicById(epic1Id);
+            taskManager.getEpicById(epic2Id);
+            taskManager.getSubtaskById(subtask1Id);
+            taskManager.getSubtaskById(subtask2Id);
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     List<Task> prepareHistoryList() {

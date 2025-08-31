@@ -2,6 +2,7 @@ package tracker.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tracker.exceptions.NotFoundException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -174,7 +175,12 @@ abstract public class TaskManagerTest {
         final int taskId = taskManager.addTask(task1);
         task2.setTaskId(taskId);
         taskManager.updateTask(task2);
-        Task taskAfterUpdate = taskManager.getTaskById(taskId);
+        final Task taskAfterUpdate;
+        try {
+            taskAfterUpdate = taskManager.getTaskById(taskId);
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
         assertEquals(task2, taskAfterUpdate, "`updateTask()` should update task to the new one");
     }
 
@@ -183,7 +189,12 @@ abstract public class TaskManagerTest {
         final int epicId = taskManager.addTask(epic1);
         epic2.setTaskId(epicId);
         taskManager.updateEpic(epic2);
-        Epic epicAfterUpdate = taskManager.getEpicById(epicId);
+        final Epic epicAfterUpdate;
+        try {
+            epicAfterUpdate = taskManager.getEpicById(epicId);
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
         assertEquals(epic2, epicAfterUpdate, "`updateEpic()` should update epic to the new one");
     }
 
@@ -196,7 +207,12 @@ abstract public class TaskManagerTest {
         final int subtaskId = taskManager.addSubtask(subtask1);
         subtask2.setTaskId(subtaskId);
         taskManager.updateSubtask(subtask2);
-        Subtask subtaskAfterUpdate = taskManager.getSubtaskById(subtaskId);
+        final Subtask subtaskAfterUpdate;
+        try {
+            subtaskAfterUpdate = taskManager.getSubtaskById(subtaskId);
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
         assertEquals(subtask2, subtaskAfterUpdate, "`updateSubtask()` should update subtask to the new one");
     }
 
@@ -383,9 +399,13 @@ abstract public class TaskManagerTest {
         subtask1.setEpicId(epicId);
         final int subtaskId = taskManager.addSubtask(subtask1);
         final int taskId = taskManager.addTask(task1);
-        taskManager.getTaskById(taskId);
-        taskManager.getSubtaskById(subtaskId);
-        taskManager.getEpicById(epicId);
+        try {
+            taskManager.getTaskById(taskId);
+            taskManager.getSubtaskById(subtaskId);
+            taskManager.getEpicById(epicId);
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
         final ArrayList<Task> expectedList = new ArrayList<>(3);
         expectedList.add(task1);
         expectedList.add(subtask1);

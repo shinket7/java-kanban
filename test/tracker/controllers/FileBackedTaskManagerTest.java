@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import tracker.exceptions.NotFoundException;
 import tracker.model.Task;
 
 import java.io.BufferedReader;
@@ -50,12 +51,16 @@ class FileBackedTaskManagerTest extends TaskManagerTest {
 
     void prepareForHistoryClearTests() {
         addAllIssues();
-        taskManager.getTaskById(task1.getTaskId());
-        taskManager.getTaskById(task2.getTaskId());
-        taskManager.getEpicById(epic1.getTaskId());
-        taskManager.getEpicById(epic2.getTaskId());
-        taskManager.getSubtaskById(subtask1.getTaskId());
-        taskManager.getSubtaskById(subtask2.getTaskId());
+        try {
+            taskManager.getTaskById(task1.getTaskId());
+            taskManager.getTaskById(task2.getTaskId());
+            taskManager.getEpicById(epic1.getTaskId());
+            taskManager.getEpicById(epic2.getTaskId());
+            taskManager.getSubtaskById(subtask1.getTaskId());
+            taskManager.getSubtaskById(subtask2.getTaskId());
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test

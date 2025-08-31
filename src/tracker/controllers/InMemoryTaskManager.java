@@ -1,5 +1,6 @@
 package tracker.controllers;
 
+import tracker.exceptions.NotFoundException;
 import tracker.model.*;
 
 import java.time.Duration;
@@ -96,22 +97,31 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskById(int id) {
+    public Task getTaskById(int id) throws NotFoundException {
         final Task task = tasks.get(id);
+        if (task == null) {
+            throw new NotFoundException("Task is not found by id " + id);
+        }
         historyManager.add(task);
         return task;
     }
 
     @Override
-    public Epic getEpicById(int id) {
+    public Epic getEpicById(int id) throws NotFoundException {
         final Epic epic = epics.get(id);
+        if (epic == null) {
+            throw new NotFoundException("Epic is not found by id " + id);
+        }
         historyManager.add(epic);
         return epic;
     }
 
     @Override
-    public Subtask getSubtaskById(int id) {
+    public Subtask getSubtaskById(int id) throws NotFoundException {
         final Subtask subtask = subtasks.get(id);
+        if (subtask == null) {
+            throw new NotFoundException("Subtask is not found by id " + id);
+        }
         historyManager.add(subtask);
         return subtask;
     }

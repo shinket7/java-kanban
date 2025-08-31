@@ -1,5 +1,6 @@
 package tracker.controllers;
 
+import tracker.exceptions.NotFoundException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -26,11 +27,11 @@ public interface TaskManager {
 
     void clearSubtasks();
 
-    Task getTaskById(int id);
+    Task getTaskById(int id) throws NotFoundException;
 
-    Epic getEpicById(int id);
+    Epic getEpicById(int id) throws NotFoundException;
 
-    Subtask getSubtaskById(int id);
+    Subtask getSubtaskById(int id) throws NotFoundException;
 
     int addTask(Task task);
 

@@ -1,5 +1,6 @@
 import tracker.controllers.Managers;
 import tracker.controllers.TaskManager;
+import tracker.exceptions.NotFoundException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -11,7 +12,7 @@ public class Demo {
 
     final TaskManager manager = Managers.getDefault();
 
-    public void runDemo() {
+    public void runDemo() throws NotFoundException {
 
         showLists();
 
