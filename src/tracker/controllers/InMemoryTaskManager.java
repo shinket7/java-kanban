@@ -267,9 +267,23 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Integer> getEpicSubtaskIdsByEpicId(int epicId) {
+    public ArrayList<Integer> getEpicSubtaskIdsByEpicId(int epicId) throws NotFoundException {
         final Epic epic = epics.get(epicId);
+        if (epic == null) {
+            throw new NotFoundException("Epic is not found by id " + epicId);
+        }
         return epic.getSubtaskIds();
+    }
+
+    @Override
+    public List<Subtask> getEpicSubtasks (int epicId) throws NotFoundException {
+        final ArrayList<Integer> subtaskIds = getEpicSubtaskIdsByEpicId(epicId);
+        return subtaskIds.stream().map(id -> {
+            try {
+                return getSubtaskById(id);
+            } catch (NotFoundException ignore) {}
+            return null;
+        }).filter(Objects::nonNull).toList();
     }
 
     private TaskStatus computeEpicStatus(int epicId) {

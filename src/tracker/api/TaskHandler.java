@@ -30,6 +30,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             return;
         }
         final String methodName = exchange.getRequestMethod();
+
         if (pathArray.length == 3) {
             if (!methodName.equals("GET") && !methodName.equals("DELETE")) {
                 sendNotAllowed(exchange);
@@ -49,6 +50,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             handleGetById(exchange, taskId);
             return;
         }
+
         if (methodName.equals("GET")) {
             handleGet(exchange);
             return;
