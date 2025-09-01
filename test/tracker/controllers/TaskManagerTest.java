@@ -300,8 +300,18 @@ abstract public class TaskManagerTest {
         expectedList.add(subtask1Id);
         expectedList.add(subtask2Id);
         assertEquals(expectedList, taskManager.getEpicSubtaskIdsByEpicId(epicId),
-                "`getEpicSubtaskIdsByEpicId()` should return `ArrayList` of subtask ids of epic "
-                        + "which id is given");
+                "`getEpicSubtaskIdsByEpicId()` should return a list of subtask ids of epic which id is given");
+    }
+
+    @Test
+    void shouldReturnSubtasksByEpicId() throws OverlapException, NotFoundException {
+        final int epicId = taskManager.addEpic(epic1);
+        subtask1.setEpicId(epicId);
+        subtask2.setEpicId(epicId);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+        assertEquals(List.of(subtask1, subtask2), taskManager.getEpicSubtasks(epicId),
+                "`getEpicSubtasks()` should return a list of subtasks of epic which id is given");
     }
 
     @Test

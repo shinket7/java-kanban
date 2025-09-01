@@ -13,13 +13,11 @@ public class HttpTaskServer {
 
     public static void main(String[] args) {
         final HttpTaskServer taskServer = new HttpTaskServer();
-        taskServer.start();
+        taskServer.start(Managers.getDefault());
         taskServer.stop();
     }
 
-    public void start() {
-        final TaskManager taskManager = Managers.getDefault();
-
+    public void start(TaskManager taskManager) {
         try {
             server = HttpServer.create(new InetSocketAddress(8080), 0);
         } catch (IOException e) {
@@ -39,7 +37,7 @@ public class HttpTaskServer {
 
     public void stop() {
         if (server != null) {
-            server.stop(2);
+            server.stop(0);
         }
     }
 }

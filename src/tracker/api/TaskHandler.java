@@ -166,7 +166,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
             task.setStartTimeAndDuration(startDT, durationDur);
         }
 
-        if (taskIdInt == null) {
+        if (taskIdInt == null || taskIdInt == -1) {
             try {
                 taskManager.addTask(task);
             } catch (OverlapException e) {

@@ -52,7 +52,7 @@ public interface TaskManager {
 
     void deleteSubtaskById(int id);
 
-    ArrayList<Integer> getEpicSubtaskIdsByEpicId(int epicId) throws NotFoundException;
+    List<Integer> getEpicSubtaskIdsByEpicId(int epicId) throws NotFoundException;
 
     List<Subtask> getEpicSubtasks(int epicId) throws NotFoundException;
 
