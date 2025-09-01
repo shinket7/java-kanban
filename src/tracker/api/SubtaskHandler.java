@@ -9,6 +9,7 @@ import com.sun.net.httpserver.HttpHandler;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
 import tracker.exceptions.OverlapException;
+import tracker.model.Subtask;
 import tracker.model.Task;
 import tracker.model.TaskStatus;
 
@@ -17,15 +18,15 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class TaskHandler extends BaseHttpHandler implements HttpHandler {
-    public TaskHandler(TaskManager taskManager) {
+public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
+    public SubtaskHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         final String[] pathArray = exchange.getRequestURI().getPath().split("/");
-        if (pathArray.length > 3 || !pathArray[1].equals("tasks")) {
+        if (pathArray.length > 3 || !pathArray[1].equals("subtasks")) {
             sendNotFound(exchange);
             return;
         }
@@ -36,18 +37,18 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 sendNotAllowed(exchange);
                 return;
             }
-            final int taskId;
+            final int subtaskId;
             try {
-                taskId = Integer.parseInt(pathArray[2]);
+                subtaskId = Integer.parseInt(pathArray[2]);
             } catch (NumberFormatException e) {
                 sendBadRequest(exchange);
                 return;
             }
             if (methodName.equals("DELETE")) {
-                handleDelete(exchange, taskId);
+                handleDelete(exchange, subtaskId);
                 return;
             }
-            handleGetById(exchange, taskId);
+            handleGetById(exchange, subtaskId);
             return;
         }
 
@@ -62,20 +63,20 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
         sendNotAllowed(exchange);
     }
 
-    private void handleGetById(HttpExchange exchange, int taskId) throws IOException {
-        final Task task;
+    private void handleGetById(HttpExchange exchange, int subtaskId) throws IOException {
+        final Subtask subtask;
         try {
-            task = taskManager.getTaskById(taskId);
+            subtask = taskManager.getSubtaskById(subtaskId);
         } catch (NotFoundException e) {
             sendNotFound(exchange);
             return;
         }
-        sendText(exchange, gson.toJson(task));
+        sendText(exchange, gson.toJson(subtask));
     }
 
     private void handleGet(HttpExchange exchange) throws IOException {
-        final List<Task> tasks = taskManager.getTasks();
-        sendText(exchange, gson.toJson(tasks));
+        final List<Subtask> subtasks = taskManager.getSubtasks();
+        sendText(exchange, gson.toJson(subtasks));
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {

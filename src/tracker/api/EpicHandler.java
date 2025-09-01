@@ -34,7 +34,11 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
                 handleGet(exchange);
                 return;
             }
-            handlePost(exchange);
+            if (methodName.equals("POST")) {
+                handlePost(exchange);
+                return;
+            }
+            sendNotAllowed(exchange);
             return;
         }
 

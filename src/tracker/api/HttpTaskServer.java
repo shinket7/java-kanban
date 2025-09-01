@@ -6,8 +6,10 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import tracker.controllers.Managers;
 import tracker.controllers.TaskManager;
+import tracker.exceptions.NotFoundException;
 import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
+import tracker.model.Subtask;
 import tracker.model.Task;
 
 import java.io.IOException;
@@ -30,14 +32,17 @@ public class HttpTaskServer {
 
 
         final Epic epic = new Epic("task 1", "desc 1");
-//        final LocalDateTime start = LocalDateTime.of(2025, 8, 31, 10, 0);
-//        final Duration duration = Duration.ofMinutes(30);
-//        epic.setStartTimeAndDuration(start, duration);
-//        try {
-            taskManager.addEpic(epic);
-//        } catch (OverlapException e) {
-//            throw new RuntimeException(e);
-//        }
+        final int epicId = taskManager.addEpic(epic);
+        final Subtask subtask = new Subtask("subsub", "des");
+        final LocalDateTime start = LocalDateTime.of(2025, 8, 31, 10, 0);
+        final Duration duration = Duration.ofMinutes(30);
+        subtask.setStartTimeAndDuration(start, duration);
+        subtask.setEpicId(epicId);
+        try {
+            taskManager.addSubtask(subtask);
+        } catch (OverlapException | NotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
 
 
@@ -48,9 +53,10 @@ public class HttpTaskServer {
             return;
         }
         final HttpHandler taskHandler = new TaskHandler(taskManager);
+        final HttpHandler subtaskHandler = new SubtaskHandler(taskManager);
         final HttpHandler epicHandler = new EpicHandler(taskManager);
         server.createContext("/tasks", taskHandler);
-        server.createContext("/subtasks");
+        server.createContext("/subtasks", subtaskHandler);
         server.createContext("/epics", epicHandler);
         server.createContext("/history");
         server.createContext("/prioritized");
