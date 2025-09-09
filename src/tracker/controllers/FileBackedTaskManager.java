@@ -187,7 +187,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException{
+    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException {
         super.updateSubtask(subtask);
         save();
     }
