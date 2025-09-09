@@ -12,8 +12,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class BaseHttpHandler {
-    final protected TaskManager taskManager;
-    final protected Gson gson;
+    protected final TaskManager taskManager;
+    protected final Gson gson;
 
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
