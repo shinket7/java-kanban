@@ -10,7 +10,6 @@ import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
 import tracker.exceptions.OverlapException;
 import tracker.model.Subtask;
-import tracker.model.Task;
 import tracker.model.TaskStatus;
 
 import java.io.IOException;
@@ -90,21 +89,26 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
         final JsonElement summary = bodyObj.get("summary");
         final JsonElement description = bodyObj.get("description");
         final JsonElement status = bodyObj.get("status");
+        final JsonElement epicId = bodyObj.get("epicId");
         final JsonElement taskId = bodyObj.get("taskId");
         final JsonElement startTime = bodyObj.get("startTime");
         final JsonElement duration = bodyObj.get("duration");
 
-        if (!summary.isJsonPrimitive() || !description.isJsonPrimitive() || !status.isJsonPrimitive()) {
+        if (summary == null || description == null || status == null || epicId == null || !summary.isJsonPrimitive()
+                || !description.isJsonPrimitive() || !status.isJsonPrimitive() || !epicId.isJsonPrimitive()) {
             sendBadRequest(exchange);
             return;
         }
         final JsonPrimitive summaryPrim = bodyObj.getAsJsonPrimitive("summary");
         final JsonPrimitive descriptionPrim = bodyObj.getAsJsonPrimitive("description");
         final JsonPrimitive statusPrim = bodyObj.getAsJsonPrimitive("status");
-        if (!summaryPrim.isString() || !descriptionPrim.isString() || !statusPrim.isString()) {
+        final JsonPrimitive epicIdPrim = bodyObj.getAsJsonPrimitive("epicId");
+        if (!summaryPrim.isString() || !descriptionPrim.isString() || !statusPrim.isString()
+                || !epicIdPrim.isNumber()) {
             sendBadRequest(exchange);
             return;
         }
+        final int epicIdInt = epicIdPrim.getAsInt();
 
         Integer taskIdInt = null;
         String startTimeStr = null;
@@ -147,7 +151,7 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
             durationStr = durationPrim.getAsString();
         }
 
-        final Task task = new Task(summaryPrim.getAsString(), descriptionPrim.getAsString());
+        final Subtask subtask = new Subtask(summaryPrim.getAsString(), descriptionPrim.getAsString());
         final TaskStatus taskStatus;
         switch (statusPrim.getAsString()) {
             case "DONE":
@@ -159,32 +163,41 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
             default:
                 taskStatus = TaskStatus.NEW;
         }
-        task.setStatus(taskStatus);
+        subtask.setStatus(taskStatus);
+        subtask.setEpicId(epicIdInt);
 
         if (startTimeStr != null && durationStr != null) {
             final LocalDateTime startDT = LocalDateTime.parse(startTimeStr);
             final Duration durationDur = Duration.parse(durationStr);
-            task.setStartTimeAndDuration(startDT, durationDur);
+            subtask.setStartTimeAndDuration(startDT, durationDur);
         }
 
         if (taskIdInt == null || taskIdInt == -1) {
             try {
-                taskManager.addTask(task);
+                taskManager.addSubtask(subtask);
             } catch (OverlapException e) {
                 sendHasOverlaps(exchange);
-            }
-        } else {
-            try {
-                taskManager.getTaskById(taskIdInt);
+                return;
             } catch (NotFoundException e) {
                 sendNotFound(exchange);
                 return;
             }
-            task.setTaskId(taskIdInt);
+        } else {
             try {
-                taskManager.updateTask(task);
+                taskManager.getSubtaskById(taskIdInt);
+            } catch (NotFoundException e) {
+                sendNotFound(exchange);
+                return;
+            }
+            subtask.setTaskId(taskIdInt);
+            try {
+                taskManager.updateSubtask(subtask);
             } catch (OverlapException e) {
                 sendHasOverlaps(exchange);
+                return;
+            } catch (NotFoundException e) {
+                sendNotFound(exchange);
+                return;
             }
         }
         sendCreated(exchange);
@@ -192,12 +205,12 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
 
     private void handleDelete(HttpExchange exchange, int taskId) throws IOException {
         try {
-            taskManager.getTaskById(taskId);
+            taskManager.getSubtaskById(taskId);
         } catch (NotFoundException e) {
             sendNotFound(exchange);
             return;
         }
-        taskManager.deleteTaskById(taskId);
+        taskManager.deleteSubtaskById(taskId);
         sendText(exchange, "");
     }
 }

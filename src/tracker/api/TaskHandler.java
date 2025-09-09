@@ -93,7 +93,8 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
         final JsonElement startTime = bodyObj.get("startTime");
         final JsonElement duration = bodyObj.get("duration");
 
-        if (!summary.isJsonPrimitive() || !description.isJsonPrimitive() || !status.isJsonPrimitive()) {
+        if (summary == null || description == null || status == null || !summary.isJsonPrimitive()
+                || !description.isJsonPrimitive() || !status.isJsonPrimitive()) {
             sendBadRequest(exchange);
             return;
         }
@@ -171,6 +172,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 taskManager.addTask(task);
             } catch (OverlapException e) {
                 sendHasOverlaps(exchange);
+                return;
             }
         } else {
             try {
@@ -184,6 +186,7 @@ public class TaskHandler extends BaseHttpHandler implements HttpHandler {
                 taskManager.updateTask(task);
             } catch (OverlapException e) {
                 sendHasOverlaps(exchange);
+                return;
             }
         }
         sendCreated(exchange);

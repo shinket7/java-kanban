@@ -99,7 +99,7 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
         final JsonElement description = bodyObj.get("description");
         final JsonElement taskId = bodyObj.get("taskId");
 
-        if (!summary.isJsonPrimitive() || !description.isJsonPrimitive()) {
+        if (summary == null || description == null || !summary.isJsonPrimitive() || !description.isJsonPrimitive()) {
             sendBadRequest(exchange);
             return;
         }
