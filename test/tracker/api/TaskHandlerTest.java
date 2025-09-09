@@ -10,20 +10,13 @@ import tracker.controllers.TaskManager;
 import tracker.exceptions.OverlapException;
 import tracker.model.Task;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-enum Method {
-    GET, POST, DELETE
-}
+import static tracker.api.HttpTestHelper.sendRequest;
 
 public class TaskHandlerTest {
     private Task task1;
@@ -49,28 +42,6 @@ public class TaskHandlerTest {
     @AfterEach
     void afterEach() {
         server.stop();
-    }
-
-    HttpResponse<String> sendRequest(Method method, String path, String body) {
-        HttpClient client = HttpClient.newHttpClient();
-        final URI uri = URI.create("http://localhost:8080" + path);
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(uri);
-        switch (method) {
-            case POST:
-                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
-                break;
-            case DELETE:
-                requestBuilder.DELETE();
-                break;
-            default:
-                requestBuilder.GET();
-        }
-        final HttpRequest request = requestBuilder.build();
-        try {
-            return client.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Test
@@ -109,7 +80,8 @@ public class TaskHandlerTest {
         task1.setTaskId(task1Id);
         final HttpResponse<String> response = sendRequest(Method.POST, "/tasks", gson.toJson(task1));
         assertEquals(201, response.statusCode(), "POST /tasks should return 201");
-        assertEquals(1, taskManager.getTasks().size(), "POST /tasks should add new task if with id");
+        assertEquals(1, taskManager.getTasks().size(),
+                "POST /tasks should not add new task if with id");
     }
 
     @Test
