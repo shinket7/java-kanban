@@ -147,7 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public int addSubtask(Subtask subtask) throws OverlapException, NotFoundException{
+    public int addSubtask(Subtask subtask) throws OverlapException, NotFoundException {
         if (taskOverlapsWithExisting(subtask)) {
             throw new OverlapException("Subtask overlaps with existing subtasks");
         }
@@ -199,7 +199,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException{
+    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException {
         if (taskOverlapsWithExisting(subtask)) {
             throw new OverlapException("Subtask overlaps with existing subtasks");
         }
@@ -276,12 +276,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Subtask> getEpicSubtasks (int epicId) throws NotFoundException {
+    public List<Subtask> getEpicSubtasks(int epicId) throws NotFoundException {
         final ArrayList<Integer> subtaskIds = getEpicSubtaskIdsByEpicId(epicId);
         return subtaskIds.stream().map(id -> {
             try {
                 return getSubtaskById(id);
-            } catch (NotFoundException ignore) {}
+            } catch (NotFoundException ignore) {
+            }
             return null;
         }).filter(Objects::nonNull).toList();
     }
