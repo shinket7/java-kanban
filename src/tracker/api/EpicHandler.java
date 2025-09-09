@@ -126,7 +126,7 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
 
         final Epic epic = new Epic(summaryPrim.getAsString(), descriptionPrim.getAsString());
 
-        if (taskIdInt == null) {
+        if (taskIdInt == null || taskIdInt == -1) {
             taskManager.addEpic(epic);
         } else {
             try {
