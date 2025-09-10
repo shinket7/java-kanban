@@ -23,43 +23,44 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        final String[] pathArray = exchange.getRequestURI().getPath().split("/");
+    protected void processGet(HttpExchange exchange, String[] pathArray) throws IOException {
         if (pathArray.length > 3 || !pathArray[1].equals("subtasks")) {
             sendNotFound(exchange);
             return;
         }
-        final String methodName = exchange.getRequestMethod();
 
-        if (pathArray.length == 3) {
-            if (!methodName.equals("GET") && !methodName.equals("DELETE")) {
-                sendNotAllowed(exchange);
-                return;
-            }
-            final int subtaskId;
-            try {
-                subtaskId = Integer.parseInt(pathArray[2]);
-            } catch (NumberFormatException e) {
-                sendBadRequest(exchange);
-                return;
-            }
-            if (methodName.equals("DELETE")) {
-                handleDelete(exchange, subtaskId);
-                return;
-            }
-            handleGetById(exchange, subtaskId);
-            return;
-        }
-
-        if (methodName.equals("GET")) {
+        if (pathArray.length == 2) {
             handleGet(exchange);
             return;
         }
-        if (methodName.equals("POST")) {
-            handlePost(exchange);
+
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            handleGetById(exchange, taskId);
+        }
+    }
+
+    @Override
+    protected void processPost(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 2 || !pathArray[1].equals("subtasks")) {
+            sendNotFound(exchange);
             return;
         }
-        sendNotAllowed(exchange);
+
+        handlePost(exchange);
+    }
+
+    @Override
+    protected void processDelete(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 3 || !pathArray[1].equals("subtasks")) {
+            sendNotFound(exchange);
+            return;
+        }
+
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            handleDelete(exchange, taskId);
+        }
     }
 
     private void handleGetById(HttpExchange exchange, int subtaskId) throws IOException {
