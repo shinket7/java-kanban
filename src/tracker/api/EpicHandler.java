@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
 import tracker.model.Epic;
@@ -14,61 +13,55 @@ import tracker.model.Subtask;
 import java.io.IOException;
 import java.util.List;
 
-public class EpicHandler extends BaseHttpHandler implements HttpHandler {
+public class EpicHandler extends BaseHttpHandler {
     public EpicHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        final String[] pathArray = exchange.getRequestURI().getPath().split("/");
+    protected void processGet(HttpExchange exchange, String[] pathArray) throws IOException {
         if (pathArray.length > 4 || !pathArray[1].equals("epics")
                 || pathArray.length == 4 && !pathArray[3].equals("subtasks")) {
             sendNotFound(exchange);
             return;
         }
-        final String methodName = exchange.getRequestMethod();
 
         if (pathArray.length == 2) {
-            if (methodName.equals("GET")) {
-                handleGet(exchange);
+            handleGet(exchange);
+            return;
+        }
+
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            if (pathArray.length == 4) {
+                handleGetSubtasks(exchange, taskId);
                 return;
             }
-            if (methodName.equals("POST")) {
-                handlePost(exchange);
-                return;
-            }
-            sendNotAllowed(exchange);
+            handleGetById(exchange, taskId);
+        }
+    }
+
+    @Override
+    protected void processPost(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 2 || !pathArray[1].equals("epics")) {
+            sendNotFound(exchange);
             return;
         }
 
-        final int epicId;
-        try {
-            epicId = Integer.parseInt(pathArray[2]);
-        } catch (NumberFormatException e) {
-            sendBadRequest(exchange);
+        handlePost(exchange);
+    }
+
+    @Override
+    protected void processDelete(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 3 || !pathArray[1].equals("epics")) {
+            sendNotFound(exchange);
             return;
         }
 
-        if (pathArray.length == 4) {
-            if (!methodName.equals("GET")) {
-                sendNotAllowed(exchange);
-                return;
-            }
-            handleGetSubtasks(exchange, epicId);
-            return;
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            handleDelete(exchange, taskId);
         }
-
-        if (!methodName.equals("GET") && !methodName.equals("DELETE")) {
-            sendNotAllowed(exchange);
-            return;
-        }
-        if (methodName.equals("DELETE")) {
-            handleDelete(exchange, epicId);
-            return;
-        }
-        handleGetById(exchange, epicId);
-
     }
 
     private void handleGetById(HttpExchange exchange, int epicId) throws IOException {

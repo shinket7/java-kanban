@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
 import tracker.exceptions.OverlapException;
@@ -17,7 +16,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
+public class SubtaskHandler extends BaseHttpHandler {
     public SubtaskHandler(TaskManager taskManager) {
         super(taskManager);
     }
