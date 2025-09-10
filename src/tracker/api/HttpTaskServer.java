@@ -27,11 +27,15 @@ public class HttpTaskServer {
         final HttpHandler taskHandler = new TaskHandler(taskManager);
         final HttpHandler subtaskHandler = new SubtaskHandler(taskManager);
         final HttpHandler epicHandler = new EpicHandler(taskManager);
-        final HttpHandler userHandler = new UserHandler(taskManager);
+        final HttpHandler historyHandler = new HistoryHandler(taskManager);
+        final HttpHandler prioritizedHandler = new PrioritizedHandler(taskManager);
+        final HttpHandler baseHttpHandler = new BaseHttpHandler(taskManager);
         server.createContext("/tasks", taskHandler);
         server.createContext("/subtasks", subtaskHandler);
         server.createContext("/epics", epicHandler);
-        server.createContext("/", userHandler);
+        server.createContext("/history", historyHandler);
+        server.createContext("/prioritized", prioritizedHandler);
+        server.createContext("/", baseHttpHandler);
         server.start();
     }
 
