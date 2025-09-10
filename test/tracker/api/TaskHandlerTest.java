@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tracker.adapters.DurationTypeAdapter;
+import tracker.adapters.LocalDateTimeTypeAdapter;
 import tracker.controllers.Managers;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.OverlapException;

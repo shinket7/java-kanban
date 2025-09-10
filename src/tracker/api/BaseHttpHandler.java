@@ -3,6 +3,8 @@ package tracker.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
+import tracker.adapters.DurationTypeAdapter;
+import tracker.adapters.LocalDateTimeTypeAdapter;
 import tracker.controllers.TaskManager;
 
 import java.io.IOException;
