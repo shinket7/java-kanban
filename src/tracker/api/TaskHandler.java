@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import tracker.controllers.TaskManager;
 import tracker.exceptions.NotFoundException;
 import tracker.exceptions.OverlapException;
@@ -17,49 +16,50 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class TaskHandler extends BaseHttpHandler implements HttpHandler {
+public class TaskHandler extends BaseHttpHandler {
     public TaskHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        final String[] pathArray = exchange.getRequestURI().getPath().split("/");
+    protected void processGet(HttpExchange exchange, String[] pathArray) throws IOException {
         if (pathArray.length > 3 || !pathArray[1].equals("tasks")) {
             sendNotFound(exchange);
             return;
         }
-        final String methodName = exchange.getRequestMethod();
 
-        if (pathArray.length == 3) {
-            if (!methodName.equals("GET") && !methodName.equals("DELETE")) {
-                sendNotAllowed(exchange);
-                return;
-            }
-            final int taskId;
-            try {
-                taskId = Integer.parseInt(pathArray[2]);
-            } catch (NumberFormatException e) {
-                sendBadRequest(exchange);
-                return;
-            }
-            if (methodName.equals("DELETE")) {
-                handleDelete(exchange, taskId);
-                return;
-            }
-            handleGetById(exchange, taskId);
-            return;
-        }
-
-        if (methodName.equals("GET")) {
+        if (pathArray.length == 2) {
             handleGet(exchange);
             return;
         }
-        if (methodName.equals("POST")) {
-            handlePost(exchange);
+
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            handleGetById(exchange, taskId);
+        }
+    }
+
+    @Override
+    protected void processPost(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 2 || !pathArray[1].equals("tasks")) {
+            sendNotFound(exchange);
             return;
         }
-        sendNotAllowed(exchange);
+
+        handlePost(exchange);
+    }
+
+    @Override
+    protected void processDelete(HttpExchange exchange, String[] pathArray) throws IOException {
+        if (pathArray.length != 3 || !pathArray[1].equals("tasks")) {
+            sendNotFound(exchange);
+            return;
+        }
+
+        final int taskId = parseTaskId(exchange, pathArray[2]);
+        if (taskId != -1) {
+            handleDelete(exchange, taskId);
+        }
     }
 
     private void handleGetById(HttpExchange exchange, int taskId) throws IOException {
