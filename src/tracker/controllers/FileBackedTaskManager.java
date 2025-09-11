@@ -1,6 +1,8 @@
 package tracker.controllers;
 
 import tracker.exceptions.ManagerSaveException;
+import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -152,7 +154,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public int addTask(Task task) {
+    public int addTask(Task task) throws OverlapException {
         final int taskId = super.addTask(task);
         save();
         return taskId;
@@ -166,14 +168,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public int addSubtask(Subtask subtask) {
+    public int addSubtask(Subtask subtask) throws OverlapException, NotFoundException {
         final int subtaskId = super.addSubtask(subtask);
         save();
         return subtaskId;
     }
 
     @Override
-    public void updateTask(Task task) {
+    public void updateTask(Task task) throws OverlapException {
         super.updateTask(task);
         save();
     }
@@ -185,7 +187,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void updateSubtask(Subtask subtask) {
+    public void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException {
         super.updateSubtask(subtask);
         save();
     }

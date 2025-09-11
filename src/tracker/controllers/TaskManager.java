@@ -1,5 +1,7 @@
 package tracker.controllers;
 
+import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -26,23 +28,23 @@ public interface TaskManager {
 
     void clearSubtasks();
 
-    Task getTaskById(int id);
+    Task getTaskById(int id) throws NotFoundException;
 
-    Epic getEpicById(int id);
+    Epic getEpicById(int id) throws NotFoundException;
 
-    Subtask getSubtaskById(int id);
+    Subtask getSubtaskById(int id) throws NotFoundException;
 
-    int addTask(Task task);
+    int addTask(Task task) throws OverlapException;
 
     int addEpic(Epic epic);
 
-    int addSubtask(Subtask subtask);
+    int addSubtask(Subtask subtask) throws OverlapException, NotFoundException;
 
-    void updateTask(Task task);
+    void updateTask(Task task) throws OverlapException;
 
     void updateEpic(Epic epic);
 
-    void updateSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask) throws OverlapException, NotFoundException;
 
     void deleteTaskById(int id);
 
@@ -50,7 +52,9 @@ public interface TaskManager {
 
     void deleteSubtaskById(int id);
 
-    ArrayList<Integer> getEpicSubtaskIdsByEpicId(int epicId);
+    List<Integer> getEpicSubtaskIdsByEpicId(int epicId) throws NotFoundException;
+
+    List<Subtask> getEpicSubtasks(int epicId) throws NotFoundException;
 
     List<Task> getHistory();
 

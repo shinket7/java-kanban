@@ -1,5 +1,7 @@
 import tracker.controllers.Managers;
 import tracker.controllers.TaskManager;
+import tracker.exceptions.NotFoundException;
+import tracker.exceptions.OverlapException;
 import tracker.model.Epic;
 import tracker.model.Subtask;
 import tracker.model.Task;
@@ -11,7 +13,7 @@ public class Demo {
 
     final TaskManager manager = Managers.getDefault();
 
-    public void runDemo() {
+    public void runDemo() throws OverlapException, NotFoundException {
 
         showLists();
 
